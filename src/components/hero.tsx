@@ -28,7 +28,7 @@ function handleSearch(event: FormEvent<HTMLFormElement>) {
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-foreground text-background">
+    <section className="flex flex-col overflow-hidden rounded-xl border border-[#2f3639] bg-background/5 transition-colors hover:border-[#4a5256]">
       {/* Only shown on very wide screens so it never overlaps the search card. */}
       <CraneIllustration className="pointer-events-none absolute top-36 right-0 hidden w-[24rem] text-brand min-[1600px]:block 2xl:w-[28rem]" />
 

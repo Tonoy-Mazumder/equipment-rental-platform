@@ -34,7 +34,7 @@ export function PopularCategories() {
           <Link
             key={slug}
             href={`/equipment?category=${slug}`}
-            className="flex h-28 flex-col items-center justify-center gap-2 rounded-xl border border-background/10 bg-background/5 transition-colors hover:border-background/20 hover:bg-background/10"
+           className="flex h-28 flex-col items-center justify-center gap-2 rounded-xl border border-[#2f3639] bg-background/5 transition-colors hover:border-[#4a5256] hover:bg-background/10"
           >
             <Icon
               aria-hidden="true"
