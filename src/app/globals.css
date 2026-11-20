@@ -150,3 +150,12 @@
     @apply font-heading;
   }
 }
+
+/* Diagonal hatch used behind the equipment card artwork. */
+.equipment-art-stripes {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 19px,
+    rgb(255 255 255 / 0.07) 19px 20px
+  );
+}

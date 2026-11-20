@@ -1,9 +1,19 @@
-
+import { FeaturedEquipment } from "@/components/featured-equipment";
+import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/how-it-works";
+import { PopularCategories } from "@/components/popular-categories";
+import { Testimonials } from "@/components/TestimonialsSection";
+import { WhyChooseRentPro } from "@/components/why-choose-rentpro";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h1>hello</h1>
-    </div>
+    <main className="flex flex-1 flex-col bg-foreground text-background">
+      <Hero />
+      <PopularCategories />
+      <FeaturedEquipment />
+      <HowItWorks />
+      <WhyChooseRentPro />
+      <Testimonials></Testimonials>
+    </main>
   );
 }
