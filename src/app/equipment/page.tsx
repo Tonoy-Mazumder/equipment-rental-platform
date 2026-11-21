@@ -1,129 +1,85 @@
-"use client"; // needed because we use useState (things that change on screen)
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
 import {
   Box,
   Building,
   HardHat,
   Heart,
   MapPin,
-  Star,
   Tractor,
   Truck,
   Zap,
 } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/* 1. DATA                                                             */
-/* ------------------------------------------------------------------ */
+import {
+  getEquipment,
+  type Equipment,
+} from "@/lib/api/equipment";
 
-// This describes what one machine looks like.
-type Equipment = {
-  name: string;
-  slug: string;
-  category: string;
-  city: string;
-  rating: number;
-  price: number; // price per day
-  available: boolean;
-  icon: typeof HardHat;
-  color: string; // background gradient (placeholder until real photos)
-};
+/* -------------------------------------------------------------------------- */
+/* 1. EQUIPMENT STYLE                                                         */
+/* -------------------------------------------------------------------------- */
 
-// All machines. Later you can replace this with data from your database.
-const allEquipment: Equipment[] = [
-  {
-    name: "CAT 320 Excavator",
-    slug: "cat-320-excavator",
-    category: "Excavators",
-    city: "Gazipur",
-    rating: 4.9,
-    price: 185,
-    available: true,
-    icon: HardHat,
-    color: "linear-gradient(135deg, #8a5a1e, #2a1a08)",
-  },
-  {
-    name: "Komatsu D65 Dozer",
-    slug: "komatsu-d65-dozer",
-    category: "Dozers",
-    city: "Dhaka",
-    rating: 4.8,
-    price: 240,
-    available: true,
-    icon: Tractor,
-    color: "linear-gradient(135deg, #7a6a1e, #2a2408)",
-  },
-  {
-    name: "Bobcat S650 Skid Steer",
-    slug: "bobcat-s650-skid-steer",
-    category: "Loaders",
-    city: "Chattogram",
-    rating: 4.7,
-    price: 120,
-    available: false,
-    icon: Box,
-    color: "linear-gradient(135deg, #6a5a3a, #2a2418)",
-  },
-  {
-    name: "Genie Z-45 Boom Lift",
-    slug: "genie-z-45-boom-lift",
-    category: "Aerial Lifts",
-    city: "Sylhet",
-    rating: 4.9,
-    price: 160,
-    available: true,
-    icon: Building,
-    color: "linear-gradient(135deg, #4a6070, #1c262e)",
-  },
-  {
-    name: "Cummins 100kVA Generator",
-    slug: "cummins-100kva-generator",
-    category: "Power",
-    city: "Dhaka",
-    rating: 4.6,
-    price: 75,
-    available: true,
-    icon: Zap,
-    color: "linear-gradient(135deg, #4a6a4a, #1c2a1c)",
-  },
-  {
-    name: "Volvo A30 Dump Truck",
-    slug: "volvo-a30-dump-truck",
-    category: "Trucks",
-    city: "Khulna",
-    rating: 4.8,
-    price: 210,
-    available: true,
-    icon: Truck,
-    color: "linear-gradient(135deg, #7a3a28, #2a120c)",
-  },
-];
+function getEquipmentStyle(category: string) {
+  const styles: Record<
+    string,
+    { icon: typeof HardHat; color: string }
+  > = {
+    Excavators: {
+      icon: HardHat,
+      color: "linear-gradient(135deg, #8a5a1e, #2a1a08)",
+    },
+    Dozers: {
+      icon: Tractor,
+      color: "linear-gradient(135deg, #7a6a1e, #2a2408)",
+    },
+    Loaders: {
+      icon: Box,
+      color: "linear-gradient(135deg, #6a5a3a, #2a2418)",
+    },
+    "Aerial Lifts": {
+      icon: Building,
+      color: "linear-gradient(135deg, #4a6070, #1c262e)",
+    },
+    Power: {
+      icon: Zap,
+      color: "linear-gradient(135deg, #4a6a4a, #1c2a1c)",
+    },
+    Trucks: {
+      icon: Truck,
+      color: "linear-gradient(135deg, #7a3a28, #2a120c)",
+    },
+  };
 
-// The checkbox names in the Filters box
-const categories = ["Excavators", "Dozers", "Loaders", "Aerial Lifts", "Power", "Trucks"];
+  return (
+    styles[category] ?? {
+      icon: HardHat,
+      color: "linear-gradient(135deg, #4a6070, #1c262e)",
+    }
+  );
+}
 
-/* ------------------------------------------------------------------ */
-/* 2. ONE MACHINE CARD                                                 */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* 2. EQUIPMENT CARD                                                          */
+/* -------------------------------------------------------------------------- */
 
 function EquipmentCard({ item }: { item: Equipment }) {
-  const Icon = item.icon;
+  const { icon: Icon, color } = getEquipmentStyle(item.category);
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-[#2f3639] bg-[#1b2124]">
-      {/* Top part: colored picture area */}
+      {/* Image area */}
       <div
         className="relative flex h-44 items-center justify-center"
-        style={{ backgroundImage: item.color }}
+        style={{ backgroundImage: color }}
       >
-        {/* Category label (top left) */}
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white">
           {item.category}
         </span>
 
-        {/* Heart button (top right) - does nothing yet */}
         <button
           type="button"
           aria-label={`Save ${item.name}`}
@@ -132,35 +88,35 @@ function EquipmentCard({ item }: { item: Equipment }) {
           <Heart className="size-4" />
         </button>
 
-        {/* Big icon in the middle */}
-        <Icon className="size-14 text-white/90" strokeWidth={1.5} />
+        <Icon
+          className="size-14 text-white/90"
+          strokeWidth={1.5}
+        />
       </div>
 
-      {/* Bottom part: text */}
+      {/* Equipment information */}
       <div className="p-4">
-        <h3 className="font-semibold text-white">{item.name}</h3>
+        <h3 className="font-semibold text-white">
+          {item.name}
+        </h3>
 
-        {/* City and rating */}
-        <div className="mt-1 flex items-center gap-3 text-xs text-[#9a9c96]">
-          <span className="flex items-center gap-1">
-            <MapPin className="size-3.5" />
-            {item.city}
-          </span>
-          <span className="flex items-center gap-1">
-            <Star className="size-3.5 fill-[#F28C28] text-[#F28C28]" />
-            {item.rating}
-          </span>
+        <div className="mt-1 flex items-center gap-1 text-xs text-[#9a9c96]">
+          <MapPin className="size-3.5" />
+          {item.location}
         </div>
 
-        {/* Price and status */}
         <div className="mt-3 flex items-center justify-between">
           <p className="text-white">
-            <span className="text-xl font-bold">${item.price}</span>
-            <span className="ml-1 text-xs text-[#9a9c96]">/day</span>
+            <span className="text-xl font-bold">
+              ${item.pricePerDay}
+            </span>
+
+            <span className="ml-1 text-xs text-[#9a9c96]">
+              /day
+            </span>
           </p>
 
-          {/* Green if available, orange if rented */}
-          {item.available ? (
+          {item.status === "available" ? (
             <span className="rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-medium text-green-400">
               Available
             </span>
@@ -171,9 +127,8 @@ function EquipmentCard({ item }: { item: Equipment }) {
           )}
         </div>
 
-        {/* Link to the details page */}
         <Link
-          href={`/equipment/${item.slug}`}
+          href={`/equipment/${item._id}`}
           className="mt-4 block rounded-lg bg-[#F28C28] py-2 text-center text-sm font-semibold text-[#111719] hover:bg-[#e07d1a]"
         >
           View details
@@ -183,75 +138,132 @@ function EquipmentCard({ item }: { item: Equipment }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* 3. THE WHOLE PAGE                                                   */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* 3. BROWSE EQUIPMENT PAGE                                                   */
+/* -------------------------------------------------------------------------- */
 
 export default function BrowseEquipment() {
-  // These are the values the user can change. When one changes,
-  // React redraws the page automatically.
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
   const [maxPrice, setMaxPrice] = useState(300);
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("price-low");
 
-  // Called when a checkbox is clicked: add the category, or remove it.
+  /* ------------------------------------------------------------------------ */
+  /* FETCH EQUIPMENT                                                          */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    async function loadEquipment() {
+      try {
+        const data = await getEquipment();
+        setEquipment(data);
+      } catch {
+        setError("Failed to load equipment. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEquipment();
+  }, []);
+
+  /* ------------------------------------------------------------------------ */
+  /* FILTER CATEGORIES                                                        */
+  /* ------------------------------------------------------------------------ */
+
+  const categories = [
+    ...new Set(equipment.map((item) => item.category)),
+  ];
+
   function toggleCategory(category: string) {
     if (selectedCategories.includes(category)) {
-      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+      setSelectedCategories(
+        selectedCategories.filter((item) => item !== category)
+      );
     } else {
       setSelectedCategories([...selectedCategories, category]);
     }
   }
 
-  // Step 1: keep only the machines that match the filters.
-  const filtered = allEquipment.filter((item) => {
-    // If no category is ticked, show all categories.
+  /* ------------------------------------------------------------------------ */
+  /* FILTER EQUIPMENT                                                         */
+  /* ------------------------------------------------------------------------ */
+
+  const filtered = equipment.filter((item) => {
     const categoryOk =
-      selectedCategories.length === 0 || selectedCategories.includes(item.category);
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(item.category);
 
-    // City must contain what the user typed (ignore capital letters).
-    const locationOk = item.city.toLowerCase().includes(location.toLowerCase());
+    const locationOk = item.location
+      .toLowerCase()
+      .includes(location.toLowerCase());
 
-    // Price must be at or below the slider value.
-    const priceOk = item.price <= maxPrice;
+    const priceOk = item.pricePerDay <= maxPrice;
 
     return categoryOk && locationOk && priceOk;
   });
 
-  // Step 2: sort the filtered list.
+  /* ------------------------------------------------------------------------ */
+  /* SORT EQUIPMENT                                                           */
+  /* ------------------------------------------------------------------------ */
+
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "price-low") return a.price - b.price;
-    if (sortBy === "price-high") return b.price - a.price;
-    return b.rating - a.rating; // default: top rated first
+    if (sortBy === "price-low") {
+      return a.pricePerDay - b.pricePerDay;
+    }
+
+    if (sortBy === "price-high") {
+      return b.pricePerDay - a.pricePerDay;
+    }
+
+    return 0;
   });
+
+  /* ------------------------------------------------------------------------ */
+  /* PAGE UI                                                                  */
+  /* ------------------------------------------------------------------------ */
 
   return (
     <main className="min-h-screen bg-[#111719] text-white">
       <div className="mx-auto max-w-[1180px] px-5 py-10">
+
         {/* Page title */}
-        <h1 className="text-3xl font-extrabold tracking-tight">Browse equipment</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">
+          Browse equipment
+        </h1>
+
         <p className="mt-2 text-[#9a9c96]">
-          {sorted.length} machines available near you
+          {loading
+            ? "Loading equipment..."
+            : `${sorted.length} machines found`}
         </p>
 
-        {/* Two columns: filters on the left, cards on the right */}
+        {/* Filters and equipment cards */}
         <div className="mt-8 grid gap-6 lg:grid-cols-[240px_1fr]">
-          {/* ---------- Filters box ---------- */}
+
+          {/* Filters */}
           <aside className="h-fit rounded-2xl border border-[#2f3639] bg-[#1b2124] p-5">
             <h2 className="font-semibold">Filters</h2>
 
-            {/* Category checkboxes */}
+            {/* Categories */}
             <div className="mt-3 space-y-2">
               {categories.map((category) => (
-                <label key={category} className="flex items-center gap-2 text-sm">
+                <label
+                  key={category}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <input
                     type="checkbox"
                     checked={selectedCategories.includes(category)}
                     onChange={() => toggleCategory(category)}
                     className="size-4 accent-[#F28C28]"
                   />
+
                   {category}
                 </label>
               ))}
@@ -260,63 +272,84 @@ export default function BrowseEquipment() {
             {/* Location */}
             <label className="mt-5 block text-xs font-semibold text-[#9a9c96]">
               Location
+
               <input
                 type="text"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(event) => setLocation(event.target.value)}
                 placeholder="City or area"
                 className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2 text-sm font-normal text-white"
               />
             </label>
 
-            {/* Available from (the date is not used for filtering yet) */}
+            {/* Available date */}
             <label className="mt-4 block text-xs font-semibold text-[#9a9c96]">
               Available from
+
               <input
                 type="date"
                 value={availableFrom}
-                onChange={(e) => setAvailableFrom(e.target.value)}
+                onChange={(event) => setAvailableFrom(event.target.value)}
                 className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2 text-sm font-normal text-white"
               />
             </label>
 
-            {/* Max price slider */}
+            {/* Maximum price */}
             <label className="mt-4 block text-xs font-semibold text-[#9a9c96]">
               Max price / day: ${maxPrice}
+
               <input
                 type="range"
                 min={50}
                 max={300}
                 step={10}
                 value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                onChange={(event) =>
+                  setMaxPrice(Number(event.target.value))
+                }
                 className="mt-2 w-full accent-[#F28C28]"
               />
             </label>
 
-            {/* Sort dropdown */}
+            {/* Sorting */}
             <label className="mt-4 block text-xs font-semibold text-[#9a9c96]">
               Sort
+
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(event) => setSortBy(event.target.value)}
                 className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2 text-sm font-normal text-white"
               >
-                <option value="rating">Top rated</option>
-                <option value="price-low">Price: low to high</option>
-                <option value="price-high">Price: high to low</option>
+                <option value="price-low">
+                  Price: low to high
+                </option>
+
+                <option value="price-high">
+                  Price: high to low
+                </option>
               </select>
             </label>
           </aside>
 
-          {/* ---------- Cards ---------- */}
+          {/* Equipment cards */}
           <section>
-            {sorted.length === 0 ? (
-              <p className="text-[#9a9c96]">No machines match your filters.</p>
+            {loading ? (
+              <p className="text-[#9a9c96]">
+                Loading equipment...
+              </p>
+            ) : error ? (
+              <p className="text-red-400">{error}</p>
+            ) : sorted.length === 0 ? (
+              <p className="text-[#9a9c96]">
+                No machines match your filters.
+              </p>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {sorted.map((item) => (
-                  <EquipmentCard key={item.slug} item={item} />
+                  <EquipmentCard
+                    key={item._id}
+                    item={item}
+                  />
                 ))}
               </div>
             )}
