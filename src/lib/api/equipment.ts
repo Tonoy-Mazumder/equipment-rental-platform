@@ -99,3 +99,25 @@ export async function updateEquipment(
 
     return result;
 }
+
+// Delete equipment
+export async function deleteEquipment(
+    id: string,
+    ownerId: string
+) {
+    const response = await fetch(`${API_BASE_URL}/equipment/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ownerId }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to delete equipment");
+    }
+
+    return result;
+}
