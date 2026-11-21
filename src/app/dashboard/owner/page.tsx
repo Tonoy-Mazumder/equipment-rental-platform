@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 const stats = [
   { label: "Earnings (Nov)", value: "$3,420", note: "+18%" },
@@ -41,12 +42,11 @@ export default function OwnerDashboardPage() {
       {/* Page title */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Owner overview</h1>
-        <Button
-          variant="default"
-          className="h-9 rounded-full px-4 text-sm font-semibold text-white"
+        <Link href={`owner/equipment/add`} className="font-medium text-brand transition-colors hover:text-brand/80 border border-amber-50 p-2"
+
         >
           + Add equipment
-        </Button>
+        </Link>
       </div>
 
       {/* Statistics */}

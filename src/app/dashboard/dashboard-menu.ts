@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Package,
@@ -9,8 +8,8 @@ import {
   CreditCard,
   BarChart3,
   Settings,
+  History,
 } from "lucide-react";
-
 export type DashboardRole = "owner" | "customer" | "admin";
 
 export const dashboardMenus = {
@@ -20,6 +19,7 @@ export const dashboardMenus = {
     { title: "Rental Requests", path: "/requests", icon: CalendarDays },
     { title: "Earnings", path: "/earnings", icon: DollarSign },
     { title: "Settings", path: "/settings", icon: Settings },
+    { title: "Rental History", path: "/history", icon: History },
   ],
 
   customer: [

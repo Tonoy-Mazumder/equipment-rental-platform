@@ -40,6 +40,7 @@ export type Booking = {
   createdAt: string;
   customerName?: string;
   customerEmail?: string;
+  equipmentName?: string;
 };
 
 // Get all bookings for a specific customer
@@ -138,4 +139,25 @@ export async function updateBookingStatus(
   }
 
   return result;
+}
+
+// Get owner rental history
+export async function getOwnerRentalHistory(
+  ownerId: string,
+): Promise<Booking[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/bookings/owner/${ownerId}/history`,
+  );
+
+  const result: {
+    success: boolean;
+    data: Booking[];
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch rental history");
+  }
+
+  return result.data;
 }
