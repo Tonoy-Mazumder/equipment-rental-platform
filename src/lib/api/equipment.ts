@@ -68,3 +68,34 @@ export async function getOwnerEquipment(
 
   return result.data;
 }
+
+// update equipment
+
+export async function updateEquipment(
+    id: string,
+    equipmentData: {
+        ownerId: string;
+        name: string;
+        category: string;
+        description: string;
+        pricePerDay: number;
+        location: string;
+        images: string[];
+    }
+) {
+    const response = await fetch(`${API_BASE_URL}/equipment/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(equipmentData),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to update equipment");
+    }
+
+    return result;
+}
