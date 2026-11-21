@@ -38,6 +38,8 @@ export type Booking = {
   totalPrice: number;
   status: "pending" | "approved" | "rejected" | "completed" | "cancelled";
   createdAt: string;
+  customerName?: string;
+  customerEmail?: string;
 };
 
 // Get all bookings for a specific customer
@@ -67,12 +69,9 @@ export async function getCustomerBookings(
 // Cancel a booking
 export async function cancelBooking(bookingId: string) {
   // Send PATCH request to backend
-  const response = await fetch(
-    `${API_BASE_URL}/bookings/${bookingId}/cancel`,
-    {
-      method: "PATCH",
-    }
-  );
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+  });
 
   // Convert response into JSON
   const result = await response.json();
@@ -86,12 +85,8 @@ export async function cancelBooking(bookingId: string) {
   return result;
 }
 // Get single booking by ID
-export async function getBookingById(
-  bookingId: string
-): Promise<Booking> {
-  const response = await fetch(
-    `${API_BASE_URL}/bookings/${bookingId}`
-  );
+export async function getBookingById(bookingId: string): Promise<Booking> {
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`);
 
   const result: {
     success: boolean;
@@ -101,6 +96,23 @@ export async function getBookingById(
 
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch booking");
+  }
+
+  return result.data;
+}
+
+// Get all bookings for an owner
+export async function getOwnerBookings(ownerId: string): Promise<Booking[]> {
+  const response = await fetch(`${API_BASE_URL}/bookings/owner/${ownerId}`);
+
+  const result: {
+    success: boolean;
+    data: Booking[];
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch owner bookings");
   }
 
   return result.data;
