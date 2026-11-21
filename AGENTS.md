@@ -58,3 +58,13 @@ repo) exists but is empty, so there is no backend yet.
 - Pages/layouts use default exports; shared components use named exports in
   kebab-case files (e.g. `equipment-card.tsx` exporting `EquipmentCard`).
 - Import shared code through the `@/*` alias (→ `src/*`).
+## Efficiency Rules
+
+- Read only files directly related to the current task.
+- Do not scan the entire project unless necessary.
+- Avoid unnecessary explanations and repeated code.
+- Make the smallest possible changes.
+- Do not modify unrelated files.
+- Do not run build or lint after every small change; run them when the task is complete.
+- Ask before installing new dependencies.
+- Never regenerate existing components unnecessarily.
