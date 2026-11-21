@@ -17,24 +17,34 @@ export const auth = betterAuth({
         defaultValue: "customer",
         input: true,
       },
-    },
-  },
-  databaseHooks: {
-  user: {
-    create: {
-      before: async (user) => {
-        const role = user.role === "owner" ? "owner" : "customer";
-
-        return {
-          data: {
-            ...user,
-            role,
-          },
-        };
+      phone: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      location: {
+        type: "string",
+        required: false,
+        input: true,
       },
     },
   },
-},
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const role = user.role === "owner" ? "owner" : "customer";
+
+          return {
+            data: {
+              ...user,
+              role,
+            },
+          };
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },
