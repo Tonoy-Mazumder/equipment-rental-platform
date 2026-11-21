@@ -17,11 +17,14 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
 
-  const role = pathname.split("/")[2] as
-    | "owner"
-    | "customer"
-    | "admin";
+  const roleFromPath = pathname.split("/")[2];
 
+  const role =
+    roleFromPath === "owner" ||
+      roleFromPath === "customer" ||
+      roleFromPath === "admin"
+      ? roleFromPath
+      : "customer";
   return (
     <SidebarProvider>
       <DashboardSidebar role={role} />

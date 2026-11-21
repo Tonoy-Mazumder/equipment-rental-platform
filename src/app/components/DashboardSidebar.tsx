@@ -35,7 +35,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
     <Sidebar>
       <SidebarHeader className="px-5 py-6">
         <div>
-          <h2 className="text-2xl font-extrabold text-white">
+          <h2 className="text-2xl font-extrabold text-foreground">
             Rent<span className="text-[#F28C28]">Pro</span>
           </h2>
           <p className="mt-1 text-xs text-white/50 capitalize">
@@ -46,7 +46,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/40">
+          <SidebarGroupLabel className="text-muted-foreground">
             Workspace
           </SidebarGroupLabel>
 
@@ -63,7 +63,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
                       isActive={isActive}
                       tooltip={item.title}
                       onClick={() => router.push(url)}
-                      className="h-11 text-white/70 hover:bg-white/10 hover:text-white data-[active=true]:bg-[#F28C28] data-[active=true]:text-white"
+                      className="h-11 text-foreground/70 hover:bg-muted hover:text-foreground data-[active=true]:bg-[#F28C28] data-[active=true]:text-white"
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -78,7 +78,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
             <SidebarGroupAction
               title="Add Equipment"
               onClick={() => router.push(`${basePath}/equipment/new`)}
-              className="text-white hover:bg-white/10 hover:text-white"
+              className="text-foreground hover:bg-muted"
             >
               <Plus />
               <span className="sr-only">Add Equipment</span>
@@ -92,7 +92,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => router.push("/")}
-              className="text-white/70 hover:bg-white/10 hover:text-white"
+              className="text-foreground/70 hover:bg-muted hover:text-foreground"
             >
               <LogOut />
               <span>Back to Website</span>
