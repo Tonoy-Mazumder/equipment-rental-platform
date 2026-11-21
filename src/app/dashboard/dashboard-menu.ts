@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   History,
+  UserRound,
 } from "lucide-react";
 export type DashboardRole = "owner" | "customer" | "admin";
 
@@ -20,6 +21,11 @@ export const dashboardMenus = {
     { title: "Earnings", path: "/earnings", icon: DollarSign },
     { title: "Settings", path: "/settings", icon: Settings },
     { title: "Rental History", path: "/history", icon: History },
+    {
+      title: "My Profile",
+      path: "/profile",
+      icon: UserRound,
+    },
   ],
 
   customer: [
