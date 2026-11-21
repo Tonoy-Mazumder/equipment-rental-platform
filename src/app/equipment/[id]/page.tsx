@@ -5,11 +5,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { HardHat, MapPin, Truck } from "lucide-react";
-
+import { createBooking } from "@/lib/api/booking";
 import {
   getEquipmentById,
   type Equipment,
 } from "@/lib/api/equipment";
+
+import { authClient } from "@/lib/auth-client";
+
 
 const bookedDays = [8, 9, 10, 16, 17];
 const daysInMonth = 30;
@@ -47,14 +50,24 @@ function ImageBox({
 function BookingBox({
   pricePerDay,
   available,
+  equipmentId,
+  ownerId,
+  customerId,
 }: {
   pricePerDay: number;
   available: boolean;
+  equipmentId: string;
+  ownerId: string;
+  customerId: string;
 }) {
   const [startDay, setStartDay] = useState<number | null>(null);
   const [endDay, setEndDay] = useState<number | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState("");
 
   function handleDayClick(day: number) {
+    setBookingMessage("");
+
     if (startDay === null || endDay !== null) {
       setStartDay(day);
       setEndDay(null);
@@ -82,15 +95,60 @@ function BookingBox({
       : 0;
 
   const rentalPrice = days * pricePerDay;
+
   const serviceFee = Math.round(
     (rentalPrice * SERVICE_FEE_PERCENT) / 100
   );
+
   const total = rentalPrice + serviceFee;
 
   const allDays = Array.from(
     { length: daysInMonth },
     (_, i) => i + 1
   );
+
+  async function handleBooking() {
+  if (!customerId) {
+    setBookingMessage("Please login to book equipment.");
+    return;
+  }
+
+  if (!startDay || !endDay) {
+    setBookingMessage("Please select rental dates.");
+    return;
+  }
+
+  if (!ownerId || customerId === ownerId) {
+    setBookingMessage("You cannot book your own equipment.");
+    return;
+  }
+
+  try {
+    setBookingLoading(true);
+    setBookingMessage("");
+
+    await createBooking({
+      equipmentId,
+      customerId,
+      ownerId,
+      startDate: `2026-11-${String(startDay).padStart(2, "0")}`,
+      endDate: `2026-11-${String(endDay).padStart(2, "0")}`,
+      totalPrice: total,
+    });
+
+    setBookingMessage("Booking request submitted successfully!");
+    setStartDay(null);
+    setEndDay(null);
+  } catch (error) {
+    setBookingMessage(
+      error instanceof Error
+        ? error.message
+        : "Failed to create booking."
+    );
+  } finally {
+    setBookingLoading(false);
+  }
+}
 
   return (
     <aside className="h-fit rounded-2xl border border-[#2f3639] bg-[#1b2124] p-5 text-white">
@@ -108,6 +166,7 @@ function BookingBox({
           <p className="text-xs font-semibold text-[#9a9c96]">
             Start
           </p>
+
           <div className="mt-1 rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm">
             {startDay ? `Nov ${startDay}, 2026` : "Pick a day"}
           </div>
@@ -117,6 +176,7 @@ function BookingBox({
           <p className="text-xs font-semibold text-[#9a9c96]">
             End
           </p>
+
           <div className="mt-1 rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm">
             {endDay ? `Nov ${endDay}, 2026` : "Pick a day"}
           </div>
@@ -146,7 +206,7 @@ function BookingBox({
             <button
               key={day}
               type="button"
-              disabled={isBooked || !available}
+              disabled={isBooked || !available || bookingLoading}
               onClick={() => handleDayClick(day)}
               className={`h-10 rounded-lg text-xs ${style}`}
             >
@@ -177,11 +237,22 @@ function BookingBox({
 
       <button
         type="button"
-        disabled={days === 0 || !available}
+        onClick={handleBooking}
+        disabled={days === 0 || !available || bookingLoading}
         className="mt-4 w-full rounded-lg bg-[#F28C28] py-2.5 text-sm font-semibold text-[#111719] hover:bg-[#e07d1a] disabled:opacity-50"
       >
-        {available ? "Book now" : "Not available"}
+        {bookingLoading
+          ? "Booking..."
+          : available
+            ? "Book now"
+            : "Not available"}
       </button>
+
+      {bookingMessage && (
+        <p className="mt-3 text-center text-sm text-[#F28C28]">
+          {bookingMessage}
+        </p>
+      )}
     </aside>
   );
 }
@@ -189,6 +260,9 @@ function BookingBox({
 export default function EquipmentDetails() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+
+  const { data: session } = authClient.useSession();
+  const customerId = session?.user?.id || "";
 
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -370,6 +444,9 @@ export default function EquipmentDetails() {
           <BookingBox
             pricePerDay={equipment.pricePerDay}
             available={available}
+            equipmentId={equipment._id}
+            ownerId={equipment.ownerId}
+            customerId={customerId}
           />
         </div>
       </div>
