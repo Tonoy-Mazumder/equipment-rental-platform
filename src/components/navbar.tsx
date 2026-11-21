@@ -133,7 +133,7 @@ export function Navbar() {
                 <Link
                   href="/signup"
                   className={cn(
-                    buttonVariants({ variant: "brand", size: "lg" }),
+                    buttonVariants({ variant: "default", size: "lg" }),
                     "px-4 font-semibold"
                   )}
                 >
@@ -214,7 +214,7 @@ export function Navbar() {
                     href="/signup"
                     onClick={closeMenu}
                     className={cn(
-                      buttonVariants({ variant: "brand", size: "lg" }),
+                      buttonVariants({ variant: "default", size: "lg" }),
                       "mt-3 w-full px-4 font-semibold"
                     )}
                   >

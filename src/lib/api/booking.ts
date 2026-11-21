@@ -117,3 +117,25 @@ export async function getOwnerBookings(ownerId: string): Promise<Booking[]> {
 
   return result.data;
 }
+
+// Update booking status
+export async function updateBookingStatus(
+  bookingId: string,
+  status: "approved" | "rejected",
+) {
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to update booking");
+  }
+
+  return result;
+}

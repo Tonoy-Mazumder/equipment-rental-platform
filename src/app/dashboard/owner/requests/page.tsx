@@ -3,45 +3,84 @@
 
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { getOwnerBookings, type Booking } from "@/lib/api/booking";
+import {
+    getOwnerBookings,
+    updateBookingStatus,
+    type Booking,
+} from "@/lib/api/booking";
+import { toast } from "@/components/ui/toast";
 
 export default function OwnerRequestsPage() {
     const { data: session } = authClient.useSession();
 
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
 
     useEffect(() => {
-        const ownerId = session?.user?.id || '';
+        const ownerId = session?.user?.id;
 
-        if (!ownerId) return;
+        if (!ownerId) {
+            setLoading(false);
+            return;
+        }
 
-        async function loadBookings() {
+        async function loadBookings(id: string) {
             try {
-                setLoading(true);
-                const data = await getOwnerBookings(ownerId);
+                const data = await getOwnerBookings(id);
                 setBookings(data);
-            } catch (error) {
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to load requests"
-                );
+            } catch {
+                toast.add({
+                    title: "Error",
+                    description: "Failed to load rental requests.",
+                    type: "error",
+                });
             } finally {
                 setLoading(false);
             }
         }
 
-        loadBookings();
+        loadBookings(ownerId);
     }, [session?.user?.id]);
+
+    async function handleStatusUpdate(
+        bookingId: string,
+        status: "approved" | "rejected",
+    ) {
+        try {
+            setUpdatingId(bookingId);
+
+            await updateBookingStatus(bookingId, status);
+
+            setBookings((previousBookings) =>
+                previousBookings.map((booking) =>
+                    booking._id === bookingId
+                        ? { ...booking, status }
+                        : booking,
+                ),
+            );
+
+            toast.add({
+                title: "Success",
+                description: `Booking ${status} successfully.`,
+                type: "success",
+            });
+        } catch (error) {
+            toast.add({
+                title: "Error",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to update booking.",
+                type: "error",
+            });
+        } finally {
+            setUpdatingId(null);
+        }
+    }
 
     if (loading) {
         return <p className="p-6">Loading rental requests...</p>;
-    }
-
-    if (error) {
-        return <p className="p-6 text-red-500">{error}</p>;
     }
 
     return (
@@ -55,14 +94,16 @@ export default function OwnerRequestsPage() {
 
             {bookings.length === 0 ? (
                 <div className="rounded-xl border bg-background p-10 text-center">
-                    <h2 className="font-semibold">No rental requests yet</h2>
+                    <h2 className="font-semibold">
+                        No rental requests yet
+                    </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
                         Customer booking requests will appear here.
                     </p>
                 </div>
             ) : (
                 <div className="overflow-x-auto rounded-xl border bg-background">
-                    <table className="w-full min-w-[750px] text-left text-sm">
+                    <table className="w-full min-w-[850px] text-left text-sm">
                         <thead className="border-b bg-muted/50">
                             <tr>
                                 <th className="p-4">Customer</th>
@@ -70,12 +111,16 @@ export default function OwnerRequestsPage() {
                                 <th className="p-4">Rental Date</th>
                                 <th className="p-4">Amount</th>
                                 <th className="p-4">Status</th>
+                                <th className="p-4">Action</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {bookings.map((booking) => (
-                                <tr key={booking._id} className="border-b last:border-0">
+                                <tr
+                                    key={booking._id}
+                                    className="border-b last:border-0"
+                                >
                                     <td className="p-4">
                                         <p className="font-medium">
                                             {booking.customerName || "Unknown Customer"}
@@ -104,6 +149,44 @@ export default function OwnerRequestsPage() {
                                         <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize">
                                             {booking.status}
                                         </span>
+                                    </td>
+
+                                    <td className="p-4">
+                                        {booking.status === "pending" ? (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    disabled={updatingId !== null}
+                                                    onClick={() =>
+                                                        handleStatusUpdate(
+                                                            booking._id,
+                                                            "approved",
+                                                        )
+                                                    }
+                                                    className="rounded-md bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                                                >
+                                                    {updatingId === booking._id
+                                                        ? "Updating..."
+                                                        : "Approve"}
+                                                </button>
+
+                                                <button
+                                                    disabled={updatingId !== null}
+                                                    onClick={() =>
+                                                        handleStatusUpdate(
+                                                            booking._id,
+                                                            "rejected",
+                                                        )
+                                                    }
+                                                    className="rounded-md bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">
+                                                No action available
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

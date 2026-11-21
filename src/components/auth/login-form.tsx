@@ -96,9 +96,9 @@ export function LoginForm() {
       <div className="space-y-3 pt-2">
         <Button
           type="submit"
-          variant="brand"
+          variant="default"
           disabled={isSubmitting}
-          className="h-10 w-full text-sm font-semibold"
+           className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90 text-sm font-semibold"
         >
           {isSubmitting ? "Logging in…" : "Log in"}
         </Button>

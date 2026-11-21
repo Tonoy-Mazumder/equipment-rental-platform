@@ -62,7 +62,7 @@ export default function SignupPage() {
                 <div className="pt-2">
                     <Button
                         type="submit"
-                        variant="brand"
+                        variant="default"
                         className="h-10 w-full text-sm font-semibold"
                     >
                         Create account

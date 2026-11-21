@@ -42,7 +42,7 @@ export default function OwnerDashboardPage() {
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Owner overview</h1>
         <Button
-          variant="brand"
+          variant="default"
           className="h-9 rounded-full px-4 text-sm font-semibold text-white"
         >
           + Add equipment
@@ -108,7 +108,7 @@ export default function OwnerDashboardPage() {
             ))}
           </ul>
 
-          <Button variant="brand" className="mt-6 h-9 px-4 text-sm font-semibold">
+          <Button variant="default" className="mt-6 h-9 px-4 text-sm font-semibold">
             Review
           </Button>
         </section>
