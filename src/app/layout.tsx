@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono, Manrope } from "next/font/google";
 import { SiteChrome } from "@/components/site-chrome";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toast";
 
 // Manrope is used for all headings: h1–h4, hero titles, section headings,
 // card titles, and dashboard page titles.
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <SiteChrome>{children}</SiteChrome>
+        <Toaster />
       </body>
     </html>
   );

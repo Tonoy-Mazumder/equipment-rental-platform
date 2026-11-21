@@ -85,3 +85,23 @@ export async function cancelBooking(bookingId: string) {
   // Return API response
   return result;
 }
+// Get single booking by ID
+export async function getBookingById(
+  bookingId: string
+): Promise<Booking> {
+  const response = await fetch(
+    `${API_BASE_URL}/bookings/${bookingId}`
+  );
+
+  const result: {
+    success: boolean;
+    data: Booking;
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch booking");
+  }
+
+  return result.data;
+}
