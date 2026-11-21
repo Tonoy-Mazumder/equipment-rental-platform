@@ -51,3 +51,20 @@ export async function getEquipmentById(
 
   return result.data;
 }
+
+
+export async function getOwnerEquipment(
+  ownerId: string
+): Promise<Equipment[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/equipment/owner/${ownerId}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch owner equipment");
+  }
+
+  const result: EquipmentListResponse = await response.json();
+
+  return result.data;
+}

@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
 import {
   Box,
   Building,
@@ -19,10 +19,7 @@ import {
   type Equipment,
 } from "@/lib/api/equipment";
 
-/* -------------------------------------------------------------------------- */
-/* 1. EQUIPMENT STYLE                                                         */
-/* -------------------------------------------------------------------------- */
-
+// Equipment category styles
 function getEquipmentStyle(category: string) {
   const styles: Record<
     string,
@@ -62,10 +59,7 @@ function getEquipmentStyle(category: string) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* 2. EQUIPMENT CARD                                                          */
-/* -------------------------------------------------------------------------- */
-
+// Equipment card
 function EquipmentCard({ item }: { item: Equipment }) {
   const { icon: Icon, color } = getEquipmentStyle(item.category);
 
@@ -73,9 +67,22 @@ function EquipmentCard({ item }: { item: Equipment }) {
     <article className="flex flex-col overflow-hidden rounded-2xl border border-[#2f3639] bg-[#1b2124]">
       {/* Image area */}
       <div
-        className="relative flex h-44 items-center justify-center"
+        className="relative flex h-44 items-center justify-center overflow-hidden"
         style={{ backgroundImage: color }}
       >
+        {item.images?.[0] ? (
+          <img
+            src={item.images[0]}
+            alt={item.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <Icon
+            className="size-14 text-white/90"
+            strokeWidth={1.5}
+          />
+        )}
+
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white">
           {item.category}
         </span>
@@ -87,11 +94,6 @@ function EquipmentCard({ item }: { item: Equipment }) {
         >
           <Heart className="size-4" />
         </button>
-
-        <Icon
-          className="size-14 text-white/90"
-          strokeWidth={1.5}
-        />
       </div>
 
       {/* Equipment information */}
@@ -110,7 +112,6 @@ function EquipmentCard({ item }: { item: Equipment }) {
             <span className="text-xl font-bold">
               ${item.pricePerDay}
             </span>
-
             <span className="ml-1 text-xs text-[#9a9c96]">
               /day
             </span>
@@ -138,10 +139,7 @@ function EquipmentCard({ item }: { item: Equipment }) {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* 3. BROWSE EQUIPMENT PAGE                                                   */
-/* -------------------------------------------------------------------------- */
-
+// Browse equipment page
 export default function BrowseEquipment() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,13 +148,10 @@ export default function BrowseEquipment() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
-  const [maxPrice, setMaxPrice] = useState(300);
+  const [maxPrice, setMaxPrice] = useState(1000);
   const [sortBy, setSortBy] = useState("price-low");
 
-  /* ------------------------------------------------------------------------ */
-  /* FETCH EQUIPMENT                                                          */
-  /* ------------------------------------------------------------------------ */
-
+  // Fetch equipment
   useEffect(() => {
     async function loadEquipment() {
       try {
@@ -172,14 +167,12 @@ export default function BrowseEquipment() {
     loadEquipment();
   }, []);
 
-  /* ------------------------------------------------------------------------ */
-  /* FILTER CATEGORIES                                                        */
-  /* ------------------------------------------------------------------------ */
-
+  // Get categories from database
   const categories = [
     ...new Set(equipment.map((item) => item.category)),
   ];
 
+  // Toggle category filter
   function toggleCategory(category: string) {
     if (selectedCategories.includes(category)) {
       setSelectedCategories(
@@ -190,10 +183,7 @@ export default function BrowseEquipment() {
     }
   }
 
-  /* ------------------------------------------------------------------------ */
-  /* FILTER EQUIPMENT                                                         */
-  /* ------------------------------------------------------------------------ */
-
+  // Filter equipment
   const filtered = equipment.filter((item) => {
     const categoryOk =
       selectedCategories.length === 0 ||
@@ -208,10 +198,7 @@ export default function BrowseEquipment() {
     return categoryOk && locationOk && priceOk;
   });
 
-  /* ------------------------------------------------------------------------ */
-  /* SORT EQUIPMENT                                                           */
-  /* ------------------------------------------------------------------------ */
-
+  // Sort equipment
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === "price-low") {
       return a.pricePerDay - b.pricePerDay;
@@ -223,10 +210,6 @@ export default function BrowseEquipment() {
 
     return 0;
   });
-
-  /* ------------------------------------------------------------------------ */
-  /* PAGE UI                                                                  */
-  /* ------------------------------------------------------------------------ */
 
   return (
     <main className="min-h-screen bg-[#111719] text-white">
@@ -263,7 +246,6 @@ export default function BrowseEquipment() {
                     onChange={() => toggleCategory(category)}
                     className="size-4 accent-[#F28C28]"
                   />
-
                   {category}
                 </label>
               ))}
@@ -301,7 +283,7 @@ export default function BrowseEquipment() {
               <input
                 type="range"
                 min={50}
-                max={300}
+                max={1000}
                 step={10}
                 value={maxPrice}
                 onChange={(event) =>

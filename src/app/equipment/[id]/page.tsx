@@ -4,12 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import {
-  HardHat,
-  MapPin,
-  Star,
-  Truck,
-} from "lucide-react";
+import { HardHat, MapPin, Truck } from "lucide-react";
 
 import {
   getEquipmentById,
@@ -22,16 +17,29 @@ const SERVICE_FEE_PERCENT = 5;
 
 function ImageBox({
   icon: Icon,
+  image,
   className = "",
 }: {
   icon: typeof HardHat;
+  image?: string;
   className?: string;
 }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#b8742a] to-[#2a1a08] ${className}`}
+      className={`relative flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#b8742a] to-[#2a1a08] ${className}`}
     >
-      <Icon className="size-14 text-white/90" strokeWidth={1.5} />
+      {image ? (
+        <img
+          src={image}
+          alt="Equipment"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <Icon
+          className="size-14 text-white/90"
+          strokeWidth={1.5}
+        />
+      )}
     </div>
   );
 }
@@ -130,7 +138,8 @@ function BookingBox({
             style =
               "bg-red-950/60 text-red-400 line-through cursor-not-allowed";
           } else if (isSelected(day)) {
-            style = "bg-[#F28C28] text-[#111719] font-semibold";
+            style =
+              "bg-[#F28C28] text-[#111719] font-semibold";
           }
 
           return (
@@ -233,36 +242,52 @@ export default function EquipmentDetails() {
   }
 
   const available = equipment.status === "available";
+  const images = equipment.images ?? [];
 
   return (
     <main className="min-h-screen bg-[#111719] text-white">
       <div className="mx-auto max-w-[1180px] px-5 py-8">
         <nav className="text-sm text-[#9a9c96]">
-          <Link href="/browse-equipment" className="hover:text-white">
+          <Link
+            href="/browse-equipment"
+            className="hover:text-white"
+          >
             Browse
           </Link>
+
           {" / "}
+
           <Link
             href={`/browse-equipment?category=${encodeURIComponent(equipment.category)}`}
             className="hover:text-white"
           >
             {equipment.category}
           </Link>
+
           {" / "}
           {equipment.name}
         </nav>
 
         <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0">
+            {/* Equipment image gallery */}
             <div className="grid h-[310px] grid-cols-[2fr_1fr] gap-2.5">
               <ImageBox
                 icon={HardHat}
+                image={images[0]}
                 className="h-full"
               />
 
               <div className="grid grid-rows-2 gap-2.5">
-                <ImageBox icon={HardHat} />
-                <ImageBox icon={Truck} />
+                <ImageBox
+                  icon={HardHat}
+                  image={images[1]}
+                />
+
+                <ImageBox
+                  icon={Truck}
+                  image={images[2]}
+                />
               </div>
             </div>
 
@@ -277,9 +302,7 @@ export default function EquipmentDetails() {
               </span>
 
               <span>·</span>
-
               <span>{equipment.category}</span>
-
               <span>·</span>
 
               {available ? (
