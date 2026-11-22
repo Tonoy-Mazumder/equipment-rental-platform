@@ -144,16 +144,19 @@ export async function updateEquipment(
 
 
 // Delete equipment
-export async function deleteEquipment(
-    id: string,
-    ownerId: string
-) {
+
+export async function deleteEquipment(id: string) {
+    const { data, error } = await authClient.token();
+
+    if (error || !data?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
+
     const response = await fetch(`${API_BASE_URL}/equipment/${id}`, {
         method: "DELETE",
         headers: {
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.token}`,
         },
-        body: JSON.stringify({ ownerId }),
     });
 
     const result = await response.json();
