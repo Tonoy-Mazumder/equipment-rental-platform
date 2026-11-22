@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -7,58 +8,75 @@ import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
-/**
- * Reusable email + password login form powered by BetterAuth.
- * Renders its own fields, buttons and error message.
- */
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
-  setError(null);
-  setIsSubmitting(true);
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
 
-  try {
-    const formData = new FormData(event.currentTarget);
+    try {
+      const formData = new FormData(event.currentTarget);
 
-    const { error } = await authClient.signIn.email({
-      email: String(formData.get("email") || ""),
-      password: String(formData.get("password") || ""),
-    });
+      const { error } = await authClient.signIn.email({
+        email: String(formData.get("email") || ""),
+        password: String(formData.get("password") || ""),
+      });
 
-    if (error) {
-      setError(error.message || "Could not log you in. Please try again.");
-      return;
+      if (error) {
+        setError(error.message || "Could not log you in. Please try again.");
+        return;
+      }
+
+      const { data: session, error: sessionError } =
+        await authClient.getSession();
+
+      if (sessionError || !session?.user) {
+        setError("Could not retrieve your session. Please try again.");
+        return;
+      }
+
+      const role = session.user.role;
+
+      if (role === "admin") {
+        router.push("/dashboard/admin");
+      } else if (role === "owner") {
+        router.push("/dashboard/owner");
+      } else {
+        router.push("/dashboard/customer");
+      }
+
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const { data: session, error: sessionError } =
-      await authClient.getSession();
-
-    if (sessionError || !session?.user) {
-      setError("Could not retrieve your session. Please try again.");
-      return;
-    }
-
-    const role = session?.user?.role;
-
-    if (role === "admin") {
-      router.push("/dashboard/admin");
-    } else if (role === "owner") {
-      router.push("/dashboard/owner");
-    } else {
-      router.push("/dashboard/customer");
-    }
-
-    router.refresh();
-  } catch {
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setIsSubmitting(false);
   }
-}
+
+  async function handleGoogleLogin() {
+    setError(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (error) {
+        setError(error.message || "Google login failed.");
+        setIsGoogleLoading(false);
+      }
+    } catch {
+      setError("Google login failed. Please try again.");
+      setIsGoogleLoading(false);
+    }
+  }
 
   return (
     <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
@@ -97,17 +115,20 @@ export function LoginForm() {
         <Button
           type="submit"
           variant="default"
-          disabled={isSubmitting}
-           className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90 text-sm font-semibold"
+          disabled={isSubmitting || isGoogleLoading}
+          className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90 text-sm font-semibold"
         >
           {isSubmitting ? "Logging in…" : "Log in"}
         </Button>
+
         <Button
           type="button"
           variant="outline"
+          disabled={isSubmitting || isGoogleLoading}
+          onClick={handleGoogleLogin}
           className="h-10 w-full text-sm font-medium dark:bg-input/40 dark:hover:bg-input/50"
         >
-          Continue with Google
+          {isGoogleLoading ? "Connecting..." : "Continue with Google"}
         </Button>
       </div>
     </form>

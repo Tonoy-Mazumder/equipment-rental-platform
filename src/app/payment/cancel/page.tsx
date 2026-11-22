@@ -21,7 +21,7 @@ export default function PaymentCancelPage() {
 
         <div className="flex flex-col gap-3">
           <Link
-            href="/browse-equipment"
+            href="/equipment"
             className="flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-brand-foreground transition hover:opacity-90"
           >
             <ArrowLeft className="h-4 w-4" />
