@@ -110,7 +110,6 @@ export async function getOwnerEquipment(
 export async function updateEquipment(
     id: string,
     equipmentData: {
-        ownerId: string;
         name: string;
         category: string;
         description: string;
@@ -119,10 +118,17 @@ export async function updateEquipment(
         images: string[];
     }
 ) {
+    const { data: tokenData, error } = await authClient.token();
+
+    if (error || !tokenData?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
+
     const response = await fetch(`${API_BASE_URL}/equipment/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenData.token}`,
         },
         body: JSON.stringify(equipmentData),
     });
@@ -135,6 +141,7 @@ export async function updateEquipment(
 
     return result;
 }
+
 
 // Delete equipment
 export async function deleteEquipment(

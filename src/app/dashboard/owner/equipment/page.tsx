@@ -76,6 +76,7 @@ export default function Page() {
         });
     }
 
+
     // Update equipment
     async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -86,7 +87,6 @@ export default function Page() {
             setSaving(true);
 
             const updatedData = {
-                ownerId,
                 name: form.name,
                 category: form.category,
                 description: form.description,
@@ -128,6 +128,7 @@ export default function Page() {
             setSaving(false);
         }
     }
+
 
     // Delete equipment
     async function handleDelete() {
