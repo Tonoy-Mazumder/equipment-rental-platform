@@ -3,297 +3,317 @@
 
 import { useEffect, useState } from "react";
 import {
-    Search,
-    Users,
-    ShieldCheck,
-    UserRound,
+  Search,
+  Users,
+  ShieldCheck,
+  UserRound,
 } from "lucide-react";
 
 import {
-    getAdminUsers,
-    updateAdminUserRole,
-    type AdminUser,
+  getAdminUsers,
+  updateAdminUserRole,
+  type AdminUser,
 } from "@/lib/api/admin";
 
 import { toast } from "@/components/ui/toast";
 
+type UserRole = "customer" | "owner" | "admin";
+
 export default function AdminUserPage() {
-    const [users, setUsers] = useState<AdminUser[]>([]);
-    const [search, setSearch] = useState("");
-    const [selectedRoles, setSelectedRoles] = useState<
-        Record<string, "customer" | "owner">
-    >({});
-    const [updatingId, setUpdatingId] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [search, setSearch] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<
+    Record<string, UserRole>
+  >({});
+  const [updatingId, setUpdatingId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        async function loadUsers() {
-            try {
-                const data = await getAdminUsers();
-                setUsers(data);
-            } catch (error) {
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to load users"
-                );
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadUsers();
-    }, []);
-
-    async function handleRoleUpdate(user: AdminUser) {
-        const newRole = selectedRoles[user._id];
-
-        if (!newRole || newRole === user.role) {
-            return;
-        }
-
-        try {
-            setUpdatingId(user._id);
-
-            await updateAdminUserRole(user._id, newRole);
-
-            setUsers((previousUsers) =>
-                previousUsers.map((item) =>
-                    item._id === user._id
-                        ? { ...item, role: newRole }
-                        : item
-                )
-            );
-
-            toast.add({
-                title: "Success",
-                description: "User role updated successfully.",
-                type: "success",
-            });
-        } catch (error) {
-            toast.add({
-                title: "Error",
-                description:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to update user role.",
-                type: "error",
-            });
-        } finally {
-            setUpdatingId("");
-        }
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        const data = await getAdminUsers();
+        setUsers(data);
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load users"
+        );
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const filteredUsers = users.filter((user) =>
-        `${user.name} ${user.email} ${user.role}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-    );
+    loadUsers();
+  }, []);
 
-    const adminCount = users.filter(
-        (user) => user.role === "admin"
-    ).length;
+  async function handleRoleUpdate(user: AdminUser) {
+    const newRole = selectedRoles[user._id];
 
-    const ownerCount = users.filter(
-        (user) => user.role === "owner"
-    ).length;
+    if (!newRole || newRole === user.role) {
+      return;
+    }
 
-    const customerCount = users.filter(
-        (user) => user.role === "customer"
-    ).length;
+    try {
+      setUpdatingId(user._id);
 
-    return (
-        <div className="-m-5 min-h-full space-y-6 bg-[#171717] p-5 text-white md:-m-8 md:p-8">
+      await updateAdminUserRole(user._id, newRole);
 
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold">All Users</h1>
-                <p className="mt-1 text-sm text-gray-400">
-                    Manage registered users and their roles.
-                </p>
-            </div>
+      setUsers((previousUsers) =>
+        previousUsers.map((item) =>
+          item._id === user._id
+            ? { ...item, role: newRole }
+            : item
+        )
+      );
 
-            {/* Statistics */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Total Users" value={users.length}
-                    icon={<Users className="size-5" />} />
+      setSelectedRoles((previousRoles) => {
+        const updatedRoles = { ...previousRoles };
+        delete updatedRoles[user._id];
+        return updatedRoles;
+      });
 
-                <StatCard title="Customers" value={customerCount}
-                    icon={<UserRound className="size-5" />} />
+      toast.add({
+        title: "Success",
+        description: "User role updated successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update user role.",
+        type: "error",
+      });
+    } finally {
+      setUpdatingId("");
+    }
+  }
 
-                <StatCard title="Owners" value={ownerCount}
-                    icon={<Users className="size-5" />} />
+  const filteredUsers = users.filter((user) =>
+    `${user.name} ${user.email} ${user.role}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
-                <StatCard title="Admins" value={adminCount}
-                    icon={<ShieldCheck className="size-5" />} />
-            </div>
+  const adminCount = users.filter(
+    (user) => user.role === "admin"
+  ).length;
 
-            {/* Search */}
-            <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+  const ownerCount = users.filter(
+    (user) => user.role === "owner"
+  ).length;
 
-                <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name, email or role..."
-                    className="h-11 w-full rounded-lg border border-white/10 bg-[#222222] pl-10 pr-4 text-sm text-white outline-none placeholder:text-gray-500 focus:border-orange-500"
-                />
-            </div>
+  const customerCount = users.filter(
+    (user) => user.role === "customer"
+  ).length;
 
-            {/* Users Table */}
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-[#222222]">
+  return (
+    <div className="-m-5 min-h-full space-y-6 bg-[#171717] p-5 text-white md:-m-8 md:p-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold">All Users</h1>
+        <p className="mt-1 text-sm text-gray-400">
+          Manage registered users and their roles.
+        </p>
+      </div>
 
-                <div className="border-b border-white/10 px-5 py-4">
-                    <h2 className="font-semibold">Registered Users</h2>
-                    <p className="mt-1 text-sm text-gray-400">
-                        {filteredUsers.length} users found
-                    </p>
-                </div>
+      {/* Statistics */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Users"
+          value={users.length}
+          icon={<Users className="size-5" />}
+        />
 
-                {loading ? (
-                    <div className="py-16 text-center text-gray-400">
-                        Loading users...
-                    </div>
-                ) : error ? (
-                    <div className="py-16 text-center text-red-400">
-                        {error}
-                    </div>
-                ) : filteredUsers.length === 0 ? (
-                    <div className="py-16 text-center text-gray-400">
-                        No users found.
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
+        <StatCard
+          title="Customers"
+          value={customerCount}
+          icon={<UserRound className="size-5" />}
+        />
 
-                            <thead className="bg-[#292929] text-gray-400">
-                                <tr>
-                                    <th className="px-5 py-4 font-medium">User</th>
-                                    <th className="px-5 py-4 font-medium">Email</th>
-                                    <th className="px-5 py-4 font-medium">Role</th>
-                                    <th className="px-5 py-4 font-medium">Joined</th>
-                                    <th className="px-5 py-4 font-medium">Manage Role</th>
-                                </tr>
-                            </thead>
+        <StatCard
+          title="Owners"
+          value={ownerCount}
+          icon={<Users className="size-5" />}
+        />
 
-                            <tbody className="divide-y divide-white/10">
-                                {filteredUsers.map((user) => (
-                                    <tr
-                                        key={user._id}
-                                        className="transition-colors hover:bg-white/[0.03]"
-                                    >
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center gap-3">
-                                                {user.image ? (
-                                                    <img
-                                                        src={user.image}
-                                                        alt={user.name}
-                                                        className="size-10 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex size-10 items-center justify-center rounded-full bg-[#333333] font-semibold text-orange-500">
-                                                        {user.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
+        <StatCard
+          title="Admins"
+          value={adminCount}
+          icon={<ShieldCheck className="size-5" />}
+        />
+      </div>
 
-                                                <span className="font-medium text-white">
-                                                    {user.name}
-                                                </span>
-                                            </div>
-                                        </td>
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
 
-                                        <td className="px-5 py-4 text-gray-400">
-                                            {user.email}
-                                        </td>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, email or role..."
+          className="h-11 w-full rounded-lg border border-white/10 bg-[#222222] pl-10 pr-4 text-sm text-white outline-none placeholder:text-gray-500 focus:border-orange-500"
+        />
+      </div>
 
-                                        <td className="px-5 py-4">
-                                            <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                                                user.role === "admin"
-                                                    ? "bg-purple-500/15 text-purple-400"
-                                                    : user.role === "owner"
-                                                        ? "bg-orange-500/15 text-orange-400"
-                                                        : "bg-blue-500/15 text-blue-400"
-                                            }`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-5 py-4 text-gray-400">
-                                            {new Date(user.createdAt).toLocaleDateString("en-GB")}
-                                        </td>
-
-                                        <td className="px-5 py-4">
-                                            {user.role === "admin" ? (
-                                                <span className="text-xs text-gray-500">
-                                                    Protected
-                                                </span>
-                                            ) : (
-                                                <div className="flex min-w-[190px] items-center gap-2">
-                                                    <select
-                                                        value={
-                                                            selectedRoles[user._id] ??
-                                                            user.role
-                                                        }
-                                                        onChange={(e) =>
-                                                            setSelectedRoles({
-                                                                ...selectedRoles,
-                                                                [user._id]: e.target.value as "customer" | "owner",
-                                                            })
-                                                        }
-                                                        disabled={updatingId === user._id}
-                                                        className="h-9 rounded-lg border border-white/10 bg-[#292929] px-2 text-xs text-white outline-none focus:border-orange-500"
-                                                    >
-                                                        <option value="customer">Customer</option>
-                                                        <option value="owner">Owner</option>
-                                                    </select>
-
-                                                    <button
-                                                        onClick={() => handleRoleUpdate(user)}
-                                                        disabled={
-                                                            updatingId === user._id ||
-                                                            (selectedRoles[user._id] ?? user.role) === user.role
-                                                        }
-                                                        className="h-9 rounded-lg bg-orange-500 px-3 text-xs font-semibold text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
-                                                    >
-                                                        {updatingId === user._id
-                                                            ? "Updating..."
-                                                            : "Update"}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+      {/* Users Table */}
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#222222]">
+        <div className="border-b border-white/10 px-5 py-4">
+          <h2 className="font-semibold">Registered Users</h2>
+          <p className="mt-1 text-sm text-gray-400">
+            {filteredUsers.length} users found
+          </p>
         </div>
-    );
+
+        {loading ? (
+          <div className="py-16 text-center text-gray-400">
+            Loading users...
+          </div>
+        ) : error ? (
+          <div className="py-16 text-center text-red-400">
+            {error}
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="py-16 text-center text-gray-400">
+            No users found.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[#292929] text-gray-400">
+                <tr>
+                  <th className="px-5 py-4 font-medium">User</th>
+                  <th className="px-5 py-4 font-medium">Email</th>
+                  <th className="px-5 py-4 font-medium">Role</th>
+                  <th className="px-5 py-4 font-medium">Joined</th>
+                  <th className="px-5 py-4 font-medium">Manage Role</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-white/10">
+                {filteredUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="transition-colors hover:bg-white/[0.03]"
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        {user.image ? (
+                          <img
+                            src={user.image}
+                            alt={user.name}
+                            className="size-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-10 items-center justify-center rounded-full bg-[#333333] font-semibold text-orange-500">
+                            {user.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+
+                        <span className="font-medium text-white">
+                          {user.name}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-4 text-gray-400">
+                      {user.email}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                          user.role === "admin"
+                            ? "bg-purple-500/15 text-purple-400"
+                            : user.role === "owner"
+                              ? "bg-orange-500/15 text-orange-400"
+                              : "bg-blue-500/15 text-blue-400"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-4 text-gray-400">
+                      {new Date(user.createdAt).toLocaleDateString("en-GB")}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      {user.role === "admin" ? (
+                        <span className="text-xs text-gray-500">
+                          Protected
+                        </span>
+                      ) : (
+                        <div className="flex min-w-[190px] items-center gap-2">
+                          <select
+                            value={
+                              selectedRoles[user._id] ?? user.role
+                            }
+                            onChange={(e) =>
+                              setSelectedRoles({
+                                ...selectedRoles,
+                                [user._id]: e.target.value as UserRole,
+                              })
+                            }
+                            disabled={updatingId === user._id}
+                            className="h-9 rounded-lg border border-white/10 bg-[#292929] px-2 text-xs text-white outline-none focus:border-orange-500"
+                          >
+                            <option value="customer">Customer</option>
+                            <option value="owner">Owner</option>
+                            <option value="admin">Admin</option>
+                          </select>
+
+                          <button
+                            onClick={() => handleRoleUpdate(user)}
+                            disabled={
+                              updatingId === user._id ||
+                              (selectedRoles[user._id] ?? user.role) ===
+                                user.role
+                            }
+                            className="h-9 rounded-lg bg-orange-500 px-3 text-xs font-semibold text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {updatingId === user._id
+                              ? "Updating..."
+                              : "Update"}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function StatCard({
-    title,
-    value,
-    icon,
+  title,
+  value,
+  icon,
 }: {
-    title: string;
-    value: number;
-    icon: React.ReactNode;
+  title: string;
+  value: number;
+  icon: React.ReactNode;
 }) {
-    return (
-        <div className="rounded-xl border border-white/10 bg-[#222222] p-5 transition-colors hover:border-orange-500/40">
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-400">{title}</p>
-                <span className="text-orange-500">{icon}</span>
-            </div>
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#222222] p-5 transition-colors hover:border-orange-500/40">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-400">{title}</p>
+        <span className="text-orange-500">{icon}</span>
+      </div>
 
-            <p className="mt-3 text-2xl font-bold text-white">
-                {value}
-            </p>
-        </div>
-    );
+      <p className="mt-3 text-2xl font-bold text-white">
+        {value}
+      </p>
+    </div>
+  );
 }
