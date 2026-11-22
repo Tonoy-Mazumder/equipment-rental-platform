@@ -47,3 +47,29 @@ export async function getFavorites() {
 
   return result.data;
 }
+
+export async function removeFavorite(equipmentId: string) {
+  const { data: tokenData, error } = await authClient.token();
+
+  if (error || !tokenData?.token) {
+    throw new Error("Authentication required. Please login again.");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/favorites/${equipmentId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${tokenData.token}`,
+      },
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to remove favorite");
+  }
+
+  return result;
+}
