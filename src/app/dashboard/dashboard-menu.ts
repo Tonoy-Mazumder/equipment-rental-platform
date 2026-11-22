@@ -5,7 +5,6 @@ import {
   DollarSign,
   Users,
   Heart,
-  CreditCard,
   BarChart3,
   Settings,
   History,
@@ -32,8 +31,7 @@ export const dashboardMenus = {
     { title: "Overview", path: "", icon: LayoutDashboard },
     { title: "My Bookings", path: "/bookings", icon: CalendarDays },
     { title: "Favorites", path: "/favorites", icon: Heart },
-    { title: "Payments", path: "/payments", icon: CreditCard },
-    { title: "Settings", path: "/settings", icon: Settings },
+    { title: "My Profile", path: "/profile", icon: UserRound },
   ],
 
   admin: [
