@@ -1,7 +1,11 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
 import BookingActions from "@/components/booking-actions";
 import { getBookingById } from "@/lib/api/booking";
-
 
 import {
     CalendarDays,
@@ -10,14 +14,75 @@ import {
     CheckCircle2,
     CreditCard,
 } from "lucide-react";
+import { getEquipment, type Equipment } from "@/lib/api/equipment";
+type BookingData = Awaited<ReturnType<typeof getBookingById>>;
 
-const CustomerBookingPage = async ({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) => {
-    const { id } = await params;
-    const booking = await getBookingById(id);
+export default function CustomerBookingPage() {
+    const { id } = useParams<{ id: string }>();
+
+    const [booking, setBooking] = useState<BookingData | null>(null);
+    const [equipment, setEquipment] = useState<Equipment | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function fetchBooking() {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await getBookingById(id);
+                const equipmentList = await getEquipment();
+
+                const matchedEquipment = equipmentList.find(
+                    (item) => item._id === data.equipmentId,
+                );
+
+                if (isMounted) {
+                    setBooking(data);
+                    setEquipment(matchedEquipment ?? null);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setError(
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to fetch booking",
+                    );
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        fetchBooking();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center">
+                <p className="text-muted-foreground">Loading booking details...</p>
+            </div>
+        );
+    }
+
+    if (error || !booking) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center">
+                <p className="text-center text-red-500">
+                    {error || "Booking not found"}
+                </p>
+            </div>
+        );
+    }
 
     const statusColor =
         booking.status === "approved"
@@ -34,8 +99,8 @@ const CustomerBookingPage = async ({
         Math.ceil(
             (new Date(booking.endDate).getTime() -
                 new Date(booking.startDate).getTime()) /
-                (1000 * 60 * 60 * 24)
-        )
+            (1000 * 60 * 60 * 24),
+        ),
     );
 
     const formatDate = (date: string) =>
@@ -75,7 +140,7 @@ const CustomerBookingPage = async ({
                         </p>
 
                         <h2 className="mt-2 text-xl font-bold">
-                            Equipment Rental
+                            {equipment?.name ?? "Equipment details unavailable"}
                         </h2>
 
                         <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -84,10 +149,9 @@ const CustomerBookingPage = async ({
                                 {formatShortDate(booking.startDate)} -{" "}
                                 {formatShortDate(booking.endDate)}
                             </span>
-
                             <span className="flex items-center gap-2">
                                 <MapPin size={16} />
-                                Equipment location
+                                {equipment?.location ?? "Location unavailable"}
                             </span>
                         </div>
                     </div>
@@ -170,9 +234,7 @@ const CustomerBookingPage = async ({
                             <Clock className="shrink-0 text-muted-foreground" />
 
                             <div>
-                                <p className="text-sm font-medium">
-                                    Payment
-                                </p>
+                                <p className="text-sm font-medium">Payment</p>
 
                                 <p className="text-xs text-muted-foreground">
                                     Payment information unavailable
@@ -184,9 +246,7 @@ const CustomerBookingPage = async ({
                             <CalendarDays className="shrink-0 text-muted-foreground" />
 
                             <div>
-                                <p className="text-sm font-medium">
-                                    Rental start
-                                </p>
+                                <p className="text-sm font-medium">Rental start</p>
 
                                 <p className="text-xs text-muted-foreground">
                                     {formatDate(booking.startDate)}
@@ -238,6 +298,4 @@ const CustomerBookingPage = async ({
             />
         </div>
     );
-};
-
-export default CustomerBookingPage;
+}

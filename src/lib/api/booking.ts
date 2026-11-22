@@ -83,15 +83,12 @@ export async function cancelBooking(bookingId: string) {
   }
 
   // Send PATCH request with JWT token
-  const response = await fetch(
-    `${API_BASE_URL}/bookings/${bookingId}/cancel`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${data.token}`,
-      },
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${data.token}`,
     },
-  );
+  });
 
   const result = await response.json();
 
@@ -104,7 +101,19 @@ export async function cancelBooking(bookingId: string) {
 
 // Get single booking by ID
 export async function getBookingById(bookingId: string): Promise<Booking> {
-  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`);
+  // Get JWT token
+  const { data, error } = await authClient.token();
+
+  if (error || !data?.token) {
+    throw new Error("Authentication token is missing");
+  }
+
+  // Fetch booking details with JWT
+  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+    },
+  });
 
   const result: {
     success: boolean;
@@ -118,7 +127,6 @@ export async function getBookingById(bookingId: string): Promise<Booking> {
 
   return result.data;
 }
-
 export async function getOwnerBookings(): Promise<Booking[]> {
   console.log("Step 1: Getting JWT token");
 
