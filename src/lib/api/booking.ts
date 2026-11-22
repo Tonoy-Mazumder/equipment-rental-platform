@@ -75,22 +75,33 @@ export async function getCustomerBookings(): Promise<Booking[]> {
 
 // Cancel a booking
 export async function cancelBooking(bookingId: string) {
-  // Send PATCH request to backend
-  const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
-    method: "PATCH",
-  });
+  // Get JWT token
+  const { data, error } = await authClient.token();
 
-  // Convert response into JSON
+  if (error || !data?.token) {
+    throw new Error("Authentication token is missing");
+  }
+
+  // Send PATCH request with JWT token
+  const response = await fetch(
+    `${API_BASE_URL}/bookings/${bookingId}/cancel`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    },
+  );
+
   const result = await response.json();
 
-  // Check for API errors
   if (!response.ok) {
     throw new Error(result.message || "Failed to cancel booking");
   }
 
-  // Return API response
   return result;
 }
+
 // Get single booking by ID
 export async function getBookingById(bookingId: string): Promise<Booking> {
   const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`);
