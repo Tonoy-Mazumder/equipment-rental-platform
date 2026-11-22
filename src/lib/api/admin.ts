@@ -20,3 +20,33 @@ export async function getAdminUsers() {
 
     return result.data as AdminUser[];
 }
+
+// get all Equipment for admin
+export type AdminEquipment = {
+    _id: string;
+    ownerId: string;
+    name: string;
+    category: string;
+    description: string;
+    pricePerDay: number;
+    location: string;
+    images: string[];
+    status: string;
+    createdAt: string;
+};
+
+export async function getAdminEquipment() {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/equipment`
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.message || "Failed to fetch equipment"
+        );
+    }
+
+    return result.data as AdminEquipment[];
+}
