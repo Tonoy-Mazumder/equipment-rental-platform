@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-import { authClient } from "@/lib/auth-client";
 import {
     getCustomerBookings,
     cancelBooking,
@@ -86,9 +85,6 @@ function getStatus(status: Booking["status"]) {
 export default function CustomerBookingsPage() {
     const router = useRouter();
 
-    const { data: session } = authClient.useSession();
-    const customerId = session?.user?.id || "";
-
     const [bookings, setBookings] = useState<BookingItem[]>([]);
     const [activeTab, setActiveTab] = useState<BookingTab>("all");
     const [search, setSearch] = useState("");
@@ -104,7 +100,7 @@ export default function CustomerBookingsPage() {
                 setLoading(true);
                 setError("");
 
-                const bookingData = await getCustomerBookings(customerId);
+                const bookingData = await getCustomerBookings();
                 const equipmentData = await getEquipment();
 
                 const bookingItems = bookingData.map((booking) => {
@@ -130,12 +126,8 @@ export default function CustomerBookingsPage() {
             }
         }
 
-        if (customerId) {
-            loadBookings();
-        } else {
-            setLoading(false);
-        }
-    }, [customerId]);
+        loadBookings();
+    }, []);
 
     // Cancel booking
     async function handleCancel(bookingId: string) {
@@ -201,10 +193,6 @@ export default function CustomerBookingsPage() {
 
         return matchesSearch && matchesTab;
     });
-
-    if (!customerId && !loading) {
-        return <p>Please login to view your bookings.</p>;
-    }
 
     return (
         <div className="min-w-0 space-y-6">

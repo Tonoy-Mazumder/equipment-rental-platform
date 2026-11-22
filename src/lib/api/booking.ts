@@ -51,26 +51,25 @@ export type Booking = {
 };
 
 // Get all bookings for a specific customer
-export async function getCustomerBookings(
-  customerId: string,
-): Promise<Booking[]> {
-  // Fetch customer bookings from backend
-  const response = await fetch(
-    `${API_BASE_URL}/bookings/customer/${customerId}`,
-  );
+export async function getCustomerBookings(): Promise<Booking[]> {
+  const { data, error } = await authClient.token();
 
-  // Check for API errors
-  if (!response.ok) {
-    throw new Error("Failed to fetch customer bookings");
+  if (error || !data?.token) {
+    throw new Error("Authentication required. Please login again.");
   }
 
-  // Convert response into JSON
-  const result: {
-    success: boolean;
-    data: Booking[];
-  } = await response.json();
+  const response = await fetch(`${API_BASE_URL}/bookings/customer`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+    },
+  });
 
-  // Return booking list
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch customer bookings");
+  }
+
   return result.data;
 }
 
