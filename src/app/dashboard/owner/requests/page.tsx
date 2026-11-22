@@ -17,22 +17,19 @@ export default function OwnerRequestsPage() {
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+
     useEffect(() => {
-        const ownerId = session?.user?.id;
-
-        if (!ownerId) {
-            setLoading(false);
-            return;
-        }
-
-        async function loadBookings(id: string) {
+        async function loadBookings() {
             try {
-                const data = await getOwnerBookings(id);
+                const data = await getOwnerBookings();
                 setBookings(data);
-            } catch {
+            } catch (error) {
                 toast.add({
                     title: "Error",
-                    description: "Failed to load rental requests.",
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to load rental requests.",
                     type: "error",
                 });
             } finally {
@@ -40,8 +37,9 @@ export default function OwnerRequestsPage() {
             }
         }
 
-        loadBookings(ownerId);
-    }, [session?.user?.id]);
+        loadBookings();
+    }, []);
+
 
     async function handleStatusUpdate(
         bookingId: string,

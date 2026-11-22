@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "./config";
-
+import { authClient } from "@/lib/auth-client";
 type CreateBookingData = {
   equipmentId: string;
   customerId: string;
@@ -102,22 +102,44 @@ export async function getBookingById(bookingId: string): Promise<Booking> {
   return result.data;
 }
 
-// Get all bookings for an owner
-export async function getOwnerBookings(ownerId: string): Promise<Booking[]> {
-  const response = await fetch(`${API_BASE_URL}/bookings/owner/${ownerId}`);
 
-  const result: {
-    success: boolean;
-    data: Booking[];
-    message?: string;
-  } = await response.json();
 
-  if (!response.ok) {
-    throw new Error(result.message || "Failed to fetch owner bookings");
-  }
+export async function getOwnerBookings(): Promise<Booking[]> {
+    console.log("Step 1: Getting JWT token");
 
-  return result.data;
+    const { data, error } = await authClient.token();
+
+    if (error || !data?.token) {
+        console.log("Step 2: Token missing", error);
+        throw new Error("Authentication required. Please login again.");
+    }
+
+    console.log("Step 2: Token received");
+
+    const response = await fetch(`${API_BASE_URL}/bookings/owner`, {
+        headers: {
+            Authorization: `Bearer ${data.token}`,
+        },
+    });
+
+    console.log("Step 3: API response status:", response.status);
+
+    const result: {
+        success: boolean;
+        data: Booking[];
+        message?: string;
+    } = await response.json();
+
+    console.log("Step 4: API response data:", result);
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to fetch owner bookings");
+    }
+
+    return result.data;
 }
+
+
 
 // Update booking status
 export async function updateBookingStatus(
