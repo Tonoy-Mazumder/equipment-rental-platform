@@ -11,7 +11,7 @@ import {
   Heart,
 } from "lucide-react";
 
-import { createBooking } from "@/lib/api/booking";
+import { createCheckoutSession } from "@/lib/api/payment";
 import {
   getEquipmentById,
   type Equipment,
@@ -137,29 +137,23 @@ function BookingBox({
       setBookingLoading(true);
       setBookingMessage("");
 
-      await createBooking({
+      const checkoutUrl = await createCheckoutSession({
         equipmentId,
-        customerId,
-        ownerId,
         startDate: `2026-11-${String(startDay).padStart(2, "0")}`,
         endDate: `2026-11-${String(endDay).padStart(2, "0")}`,
-        totalPrice: total,
       });
 
-      setBookingMessage("Booking request submitted successfully!");
-      setStartDay(null);
-      setEndDay(null);
+      window.location.href = checkoutUrl;
     } catch (error) {
       setBookingMessage(
         error instanceof Error
           ? error.message
-          : "Failed to create booking.",
+          : "Failed to start checkout.",
       );
-    } finally {
+
       setBookingLoading(false);
     }
   }
-
   return (
     <aside className="h-fit rounded-2xl border border-[#2f3639] bg-[#1b2124] p-5 text-white">
       <p>
@@ -252,7 +246,7 @@ function BookingBox({
         className="mt-4 w-full rounded-lg bg-[#F28C28] py-2.5 text-sm font-semibold text-[#111719] hover:bg-[#e07d1a] disabled:opacity-50"
       >
         {bookingLoading
-          ? "Booking..."
+          ? "Redirecting to payment..."
           : available
             ? "Book now"
             : "Not available"}
@@ -459,9 +453,8 @@ export default function EquipmentDetails() {
                   className="inline-flex items-center gap-2 rounded-lg border border-[#F28C28] px-4 py-2.5 text-sm font-semibold text-[#F28C28] transition-colors hover:bg-[#F28C28] hover:text-[#111719] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Heart
-                    className={`size-4 ${
-                      isFavorite ? "fill-current" : ""
-                    }`}
+                    className={`size-4 ${isFavorite ? "fill-current" : ""
+                      }`}
                   />
 
                   {favoriteLoading
