@@ -16,21 +16,17 @@ export default function OwnerRentalHistoryPage() {
     const [status, setStatus] = useState("all");
 
     useEffect(() => {
-        const ownerId = session?.user?.id;
-
-        if (!ownerId) {
-            setLoading(false);
-            return;
-        }
-
-        async function loadHistory(id: string) {
+        async function loadHistory() {
             try {
-                const data = await getOwnerRentalHistory(id);
+                const data = await getOwnerRentalHistory();
                 setBookings(data);
-            } catch {
+            } catch (error) {
                 toast.add({
                     title: "Error",
-                    description: "Failed to load rental history.",
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to load rental history.",
                     type: "error",
                 });
             } finally {
@@ -38,9 +34,8 @@ export default function OwnerRentalHistoryPage() {
             }
         }
 
-        loadHistory(ownerId);
-    }, [session?.user?.id]);
-
+        loadHistory();
+    }, []);
     const filteredBookings = bookings.filter((booking) => {
         const matchesSearch =
             booking.equipmentName?.toLowerCase().includes(search.toLowerCase()) ||

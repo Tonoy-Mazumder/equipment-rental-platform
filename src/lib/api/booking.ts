@@ -102,54 +102,58 @@ export async function getBookingById(bookingId: string): Promise<Booking> {
   return result.data;
 }
 
-
-
 export async function getOwnerBookings(): Promise<Booking[]> {
-    console.log("Step 1: Getting JWT token");
+  console.log("Step 1: Getting JWT token");
 
-    const { data, error } = await authClient.token();
+  const { data, error } = await authClient.token();
 
-    if (error || !data?.token) {
-        console.log("Step 2: Token missing", error);
-        throw new Error("Authentication required. Please login again.");
-    }
+  if (error || !data?.token) {
+    console.log("Step 2: Token missing", error);
+    throw new Error("Authentication required. Please login again.");
+  }
 
-    console.log("Step 2: Token received");
+  console.log("Step 2: Token received");
 
-    const response = await fetch(`${API_BASE_URL}/bookings/owner`, {
-        headers: {
-            Authorization: `Bearer ${data.token}`,
-        },
-    });
+  const response = await fetch(`${API_BASE_URL}/bookings/owner`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+    },
+  });
 
-    console.log("Step 3: API response status:", response.status);
+  console.log("Step 3: API response status:", response.status);
 
-    const result: {
-        success: boolean;
-        data: Booking[];
-        message?: string;
-    } = await response.json();
+  const result: {
+    success: boolean;
+    data: Booking[];
+    message?: string;
+  } = await response.json();
 
-    console.log("Step 4: API response data:", result);
+  console.log("Step 4: API response data:", result);
 
-    if (!response.ok) {
-        throw new Error(result.message || "Failed to fetch owner bookings");
-    }
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch owner bookings");
+  }
 
-    return result.data;
+  return result.data;
 }
 
-
-
 // Update booking status
+
 export async function updateBookingStatus(
   bookingId: string,
   status: "approved" | "rejected",
 ) {
+  const { data, error } = await authClient.token();
+
+  if (error || !data?.token) {
+    throw new Error("Authentication required. Please login again.");
+  }
+
   const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${data.token}`,
     },
     body: JSON.stringify({ status }),
   });
@@ -164,12 +168,19 @@ export async function updateBookingStatus(
 }
 
 // Get owner rental history
-export async function getOwnerRentalHistory(
-  ownerId: string,
-): Promise<Booking[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/bookings/owner/${ownerId}/history`,
-  );
+
+export async function getOwnerRentalHistory(): Promise<Booking[]> {
+  const { data, error } = await authClient.token();
+
+  if (error || !data?.token) {
+    throw new Error("Authentication required. Please login again.");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/bookings/owner/history`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+    },
+  });
 
   const result: {
     success: boolean;
