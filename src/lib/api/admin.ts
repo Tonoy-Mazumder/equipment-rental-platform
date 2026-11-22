@@ -237,3 +237,31 @@ export async function deleteAdminEquipment(equipmentId: string) {
 
   return result;
 }
+
+// Update rental booking status by admin
+export const updateAdminRentalStatus = async (
+  rentalId: string,
+  status: string
+) => {
+  const { data: tokenData } = await authClient.token();
+
+  const response = await fetch(
+    `${API_BASE_URL}/admin/rentals/${rentalId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenData?.token}`,
+      },
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to update rental status");
+  }
+
+  return result;
+};

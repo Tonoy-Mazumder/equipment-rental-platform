@@ -11,8 +11,19 @@ import {
 
 import {
   getAdminRentals,
+  updateAdminRentalStatus,
   type AdminRental,
 } from "@/lib/api/admin";
+
+import { toast } from "@/components/ui/toast";
+
+const rentalStatuses = [
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+  "completed",
+];
 
 export default function AdminRentalsPage() {
   const [rentals, setRentals] = useState<AdminRental[]>([]);
@@ -20,6 +31,7 @@ export default function AdminRentalsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingId, setUpdatingId] = useState("");
 
   useEffect(() => {
     async function loadRentals() {
@@ -74,6 +86,8 @@ export default function AdminRentalsPage() {
         return "bg-red-500/15 text-red-400";
       case "cancelled":
         return "bg-gray-500/15 text-gray-400";
+      case "completed":
+        return "bg-blue-500/15 text-blue-400";
       default:
         return "bg-orange-500/15 text-orange-400";
     }
@@ -89,6 +103,51 @@ export default function AdminRentalsPage() {
         return "bg-red-500/15 text-red-400";
       default:
         return "bg-gray-500/15 text-gray-400";
+    }
+  }
+
+  // Update rental booking status by admin
+  async function handleStatusUpdate(
+    rentalId: string,
+    newStatus: string
+  ) {
+    const currentRental = rentals.find(
+      (rental) => rental._id === rentalId
+    );
+
+    if (!currentRental || currentRental.status === newStatus) {
+      return;
+    }
+
+    try {
+      setUpdatingId(rentalId);
+
+      await updateAdminRentalStatus(rentalId, newStatus);
+
+      setRentals((previousRentals) =>
+        previousRentals.map((rental) =>
+          rental._id === rentalId
+            ? { ...rental, status: newStatus }
+            : rental
+        )
+      );
+
+      toast.add({
+        title: "Success",
+        description: "Rental status updated successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update rental status.",
+        type: "error",
+      });
+    } finally {
+      setUpdatingId("");
     }
   }
 
@@ -149,10 +208,11 @@ export default function AdminRentalsPage() {
           className="h-11 rounded-lg border border-white/10 bg-[#222222] px-4 text-sm text-white outline-none focus:border-orange-500"
         >
           <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-          <option value="cancelled">Cancelled</option>
+          {rentalStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -189,12 +249,14 @@ export default function AdminRentalsPage() {
                   <th className="px-5 py-4 font-medium">Total</th>
                   <th className="px-5 py-4 font-medium">Payment</th>
                   <th className="px-5 py-4 font-medium">Booking Status</th>
+                  <th className="px-5 py-4 font-medium">Manage</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-white/10">
                 {filteredRentals.map((rental) => {
-                  const paymentStatus = rental.paymentStatus || "unpaid";
+                  const paymentStatus =
+                    rental.paymentStatus || "unpaid";
 
                   return (
                     <tr
@@ -257,6 +319,33 @@ export default function AdminRentalsPage() {
                         >
                           {rental.status}
                         </span>
+                      </td>
+
+                      {/* Manage Rental */}
+                      <td className="px-5 py-4">
+                        <select
+                          value={rental.status}
+                          disabled={updatingId === rental._id}
+                          onChange={(e) =>
+                            handleStatusUpdate(
+                              rental._id,
+                              e.target.value
+                            )
+                          }
+                          className="h-9 min-w-[125px] rounded-lg border border-white/10 bg-[#292929] px-2 text-xs text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {rentalStatuses.map((status) => (
+                            <option key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+
+                        {updatingId === rental._id && (
+                          <p className="mt-1 text-xs text-orange-400">
+                            Updating...
+                          </p>
+                        )}
                       </td>
                     </tr>
                   );
