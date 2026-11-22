@@ -190,6 +190,39 @@ export async function updateEquipmentApproval(
   return result;
 }
 
+
+export async function updateAdminEquipment(
+  equipmentId: string,
+  equipmentData: {
+    name: string;
+    category: string;
+    description: string;
+    pricePerDay: number;
+    location: string;
+    images: string[];
+  }
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/equipment/${equipmentId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...(await getAuthHeaders()),
+      },
+      body: JSON.stringify(equipmentData),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to update equipment");
+  }
+
+  return result;
+}
+
 // Delete Equipment
 export async function deleteAdminEquipment(equipmentId: string) {
   const response = await fetch(
