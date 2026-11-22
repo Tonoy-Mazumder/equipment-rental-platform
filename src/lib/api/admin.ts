@@ -1,4 +1,3 @@
-
 import { API_BASE_URL } from "./config";
 import { authClient } from "@/lib/auth-client";
 
@@ -116,6 +115,7 @@ export type AdminRental = {
   endDate: string;
   totalPrice: number;
   status: string;
+  paymentStatus: "paid" | "unpaid" | "failed";
   createdAt: string;
   customerName: string;
   customerEmail: string;
@@ -141,19 +141,16 @@ export async function getAdminRentals() {
 // Update User Role
 export async function updateAdminUserRole(
   userId: string,
-  role: "customer" | "owner"
+  role: "customer" | "owner",
 ) {
-  const response = await fetch(
-    `${API_BASE_URL}/admin/users/${userId}/role`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        ...(await getAuthHeaders()),
-      },
-      body: JSON.stringify({ role }),
-    }
-  );
+  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/role`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(await getAuthHeaders()),
+    },
+    body: JSON.stringify({ role }),
+  });
 
   const result = await response.json();
 
@@ -167,7 +164,7 @@ export async function updateAdminUserRole(
 // Update Equipment Approval
 export async function updateEquipmentApproval(
   equipmentId: string,
-  approvalStatus: "approved" | "rejected"
+  approvalStatus: "approved" | "rejected",
 ) {
   const response = await fetch(
     `${API_BASE_URL}/admin/equipment/${equipmentId}/approval`,
@@ -178,7 +175,7 @@ export async function updateEquipmentApproval(
         ...(await getAuthHeaders()),
       },
       body: JSON.stringify({ approvalStatus }),
-    }
+    },
   );
 
   const result = await response.json();
@@ -190,7 +187,6 @@ export async function updateEquipmentApproval(
   return result;
 }
 
-
 export async function updateAdminEquipment(
   equipmentId: string,
   equipmentData: {
@@ -200,7 +196,7 @@ export async function updateAdminEquipment(
     pricePerDay: number;
     location: string;
     images: string[];
-  }
+  },
 ) {
   const response = await fetch(
     `${API_BASE_URL}/admin/equipment/${equipmentId}`,
@@ -211,7 +207,7 @@ export async function updateAdminEquipment(
         ...(await getAuthHeaders()),
       },
       body: JSON.stringify(equipmentData),
-    }
+    },
   );
 
   const result = await response.json();
@@ -230,7 +226,7 @@ export async function deleteAdminEquipment(equipmentId: string) {
     {
       method: "DELETE",
       headers: await getAuthHeaders(),
-    }
+    },
   );
 
   const result = await response.json();
