@@ -11,12 +11,19 @@ import {
 
 import {
     getAdminUsers,
+    updateAdminUserRole,
     type AdminUser,
 } from "@/lib/api/admin";
+
+import { toast } from "@/components/ui/toast";
 
 export default function AdminUserPage() {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [search, setSearch] = useState("");
+    const [selectedRoles, setSelectedRoles] = useState<
+        Record<string, "customer" | "owner">
+    >({});
+    const [updatingId, setUpdatingId] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -38,6 +45,45 @@ export default function AdminUserPage() {
 
         loadUsers();
     }, []);
+
+    async function handleRoleUpdate(user: AdminUser) {
+        const newRole = selectedRoles[user._id];
+
+        if (!newRole || newRole === user.role) {
+            return;
+        }
+
+        try {
+            setUpdatingId(user._id);
+
+            await updateAdminUserRole(user._id, newRole);
+
+            setUsers((previousUsers) =>
+                previousUsers.map((item) =>
+                    item._id === user._id
+                        ? { ...item, role: newRole }
+                        : item
+                )
+            );
+
+            toast.add({
+                title: "Success",
+                description: "User role updated successfully.",
+                type: "success",
+            });
+        } catch (error) {
+            toast.add({
+                title: "Error",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to update user role.",
+                type: "error",
+            });
+        } finally {
+            setUpdatingId("");
+        }
+    }
 
     const filteredUsers = users.filter((user) =>
         `${user.name} ${user.email} ${user.role}`
@@ -62,39 +108,25 @@ export default function AdminUserPage() {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold">
-                    All Users
-                </h1>
+                <h1 className="text-2xl font-bold">All Users</h1>
                 <p className="mt-1 text-sm text-gray-400">
-                    Manage and view all registered users.
+                    Manage registered users and their roles.
                 </p>
             </div>
 
             {/* Statistics */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                    title="Total Users"
-                    value={users.length}
-                    icon={<Users className="size-5" />}
-                />
+                <StatCard title="Total Users" value={users.length}
+                    icon={<Users className="size-5" />} />
 
-                <StatCard
-                    title="Customers"
-                    value={customerCount}
-                    icon={<UserRound className="size-5" />}
-                />
+                <StatCard title="Customers" value={customerCount}
+                    icon={<UserRound className="size-5" />} />
 
-                <StatCard
-                    title="Owners"
-                    value={ownerCount}
-                    icon={<Users className="size-5" />}
-                />
+                <StatCard title="Owners" value={ownerCount}
+                    icon={<Users className="size-5" />} />
 
-                <StatCard
-                    title="Admins"
-                    value={adminCount}
-                    icon={<ShieldCheck className="size-5" />}
-                />
+                <StatCard title="Admins" value={adminCount}
+                    icon={<ShieldCheck className="size-5" />} />
             </div>
 
             {/* Search */}
@@ -114,10 +146,7 @@ export default function AdminUserPage() {
             <div className="overflow-hidden rounded-xl border border-white/10 bg-[#222222]">
 
                 <div className="border-b border-white/10 px-5 py-4">
-                    <h2 className="font-semibold">
-                        Registered Users
-                    </h2>
-
+                    <h2 className="font-semibold">Registered Users</h2>
                     <p className="mt-1 text-sm text-gray-400">
                         {filteredUsers.length} users found
                     </p>
@@ -141,18 +170,11 @@ export default function AdminUserPage() {
 
                             <thead className="bg-[#292929] text-gray-400">
                                 <tr>
-                                    <th className="px-5 py-4 font-medium">
-                                        User
-                                    </th>
-                                    <th className="px-5 py-4 font-medium">
-                                        Email
-                                    </th>
-                                    <th className="px-5 py-4 font-medium">
-                                        Role
-                                    </th>
-                                    <th className="px-5 py-4 font-medium">
-                                        Joined
-                                    </th>
+                                    <th className="px-5 py-4 font-medium">User</th>
+                                    <th className="px-5 py-4 font-medium">Email</th>
+                                    <th className="px-5 py-4 font-medium">Role</th>
+                                    <th className="px-5 py-4 font-medium">Joined</th>
+                                    <th className="px-5 py-4 font-medium">Manage Role</th>
                                 </tr>
                             </thead>
 
@@ -172,9 +194,7 @@ export default function AdminUserPage() {
                                                     />
                                                 ) : (
                                                     <div className="flex size-10 items-center justify-center rounded-full bg-[#333333] font-semibold text-orange-500">
-                                                        {user.name
-                                                            .charAt(0)
-                                                            .toUpperCase()}
+                                                        {user.name.charAt(0).toUpperCase()}
                                                     </div>
                                                 )}
 
@@ -189,23 +209,60 @@ export default function AdminUserPage() {
                                         </td>
 
                                         <td className="px-5 py-4">
-                                            <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                                                    user.role === "admin"
-                                                        ? "bg-purple-500/15 text-purple-400"
-                                                        : user.role === "owner"
-                                                          ? "bg-orange-500/15 text-orange-400"
-                                                          : "bg-blue-500/15 text-blue-400"
-                                                }`}
-                                            >
+                                            <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                                                user.role === "admin"
+                                                    ? "bg-purple-500/15 text-purple-400"
+                                                    : user.role === "owner"
+                                                        ? "bg-orange-500/15 text-orange-400"
+                                                        : "bg-blue-500/15 text-blue-400"
+                                            }`}>
                                                 {user.role}
                                             </span>
                                         </td>
 
                                         <td className="px-5 py-4 text-gray-400">
-                                            {new Date(
-                                                user.createdAt
-                                            ).toLocaleDateString("en-GB")}
+                                            {new Date(user.createdAt).toLocaleDateString("en-GB")}
+                                        </td>
+
+                                        <td className="px-5 py-4">
+                                            {user.role === "admin" ? (
+                                                <span className="text-xs text-gray-500">
+                                                    Protected
+                                                </span>
+                                            ) : (
+                                                <div className="flex min-w-[190px] items-center gap-2">
+                                                    <select
+                                                        value={
+                                                            selectedRoles[user._id] ??
+                                                            user.role
+                                                        }
+                                                        onChange={(e) =>
+                                                            setSelectedRoles({
+                                                                ...selectedRoles,
+                                                                [user._id]: e.target.value as "customer" | "owner",
+                                                            })
+                                                        }
+                                                        disabled={updatingId === user._id}
+                                                        className="h-9 rounded-lg border border-white/10 bg-[#292929] px-2 text-xs text-white outline-none focus:border-orange-500"
+                                                    >
+                                                        <option value="customer">Customer</option>
+                                                        <option value="owner">Owner</option>
+                                                    </select>
+
+                                                    <button
+                                                        onClick={() => handleRoleUpdate(user)}
+                                                        disabled={
+                                                            updatingId === user._id ||
+                                                            (selectedRoles[user._id] ?? user.role) === user.role
+                                                        }
+                                                        className="h-9 rounded-lg bg-orange-500 px-3 text-xs font-semibold text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+                                                    >
+                                                        {updatingId === user._id
+                                                            ? "Updating..."
+                                                            : "Update"}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -230,13 +287,8 @@ function StatCard({
     return (
         <div className="rounded-xl border border-white/10 bg-[#222222] p-5 transition-colors hover:border-orange-500/40">
             <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-400">
-                    {title}
-                </p>
-
-                <span className="text-orange-500">
-                    {icon}
-                </span>
+                <p className="text-sm text-gray-400">{title}</p>
+                <span className="text-orange-500">{icon}</span>
             </div>
 
             <p className="mt-3 text-2xl font-bold text-white">

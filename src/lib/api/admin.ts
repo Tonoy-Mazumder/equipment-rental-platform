@@ -80,3 +80,29 @@ export async function getAdminRentals() {
 
     return result.data as AdminRental[];
 }
+
+// role update by admin
+
+export async function updateAdminUserRole(
+    userId: string,
+    role: "customer" | "owner"
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/users/${userId}/role`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ role }),
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to update user role");
+    }
+
+    return result;
+}
