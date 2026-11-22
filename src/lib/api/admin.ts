@@ -146,18 +146,22 @@ export async function getAdminRentals() {
 }
 
 // Update User Role
+
 export async function updateAdminUserRole(
   userId: string,
-  role: "customer" | "owner",
+  role: "customer" | "owner" | "admin"
 ) {
-  const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/role`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      ...(await getAuthHeaders()),
-    },
-    body: JSON.stringify({ role }),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/admin/users/${userId}/role`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...(await getAuthHeaders()),
+      },
+      body: JSON.stringify({ role }),
+    }
+  );
 
   const result = await response.json();
 
