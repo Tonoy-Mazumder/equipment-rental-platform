@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { API_BASE_URL } from "@/lib/api/config";
+import { addEquipment } from "@/lib/api/equipment";
 
 const categories = [
   "Construction",
@@ -43,12 +44,11 @@ const AddNewEquipmentPage = () => {
     }));
   };
 
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const ownerId = session?.user?.id;
-
-    if (!ownerId) {
+    if (!session?.user?.id) {
       setError("Please login to add equipment.");
       return;
     }
@@ -57,27 +57,14 @@ const AddNewEquipmentPage = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE_URL}/equipment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ownerId,
-          name: formData.name,
-          category: formData.category,
-          description: formData.description,
-          pricePerDay: Number(formData.pricePerDay),
-          location: formData.location,
-          images: formData.image ? [formData.image] : [],
-        }),
+      await addEquipment({
+        name: formData.name,
+        category: formData.category,
+        description: formData.description,
+        pricePerDay: Number(formData.pricePerDay),
+        location: formData.location,
+        images: formData.image ? [formData.image] : [],
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to add equipment.");
-      }
 
       router.push("/dashboard/owner/equipment");
       router.refresh();
@@ -91,6 +78,7 @@ const AddNewEquipmentPage = () => {
       setLoading(false);
     }
   };
+
 
   if (isPending) {
     return <div className="p-6">Loading...</div>;

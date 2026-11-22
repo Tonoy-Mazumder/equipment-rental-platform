@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from "./config";
-
+import { authClient } from "@/lib/auth-client";
 export type Equipment = {
   _id: string;
   ownerId: string;
@@ -50,6 +50,42 @@ export async function getEquipmentById(
   const result: SingleEquipmentResponse = await response.json();
 
   return result.data;
+}
+
+
+type AddEquipmentData = {
+    name: string;
+    category: string;
+    description: string;
+    pricePerDay: number;
+    location: string;
+    images: string[];
+};
+
+// add new eqipment
+export async function addEquipment(data: AddEquipmentData) {
+    const { data: tokenData, error } = await authClient.token();
+
+    if (error || !tokenData?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/equipment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenData.token}`,
+        },
+        body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to add equipment.");
+    }
+
+    return result;
 }
 
 
