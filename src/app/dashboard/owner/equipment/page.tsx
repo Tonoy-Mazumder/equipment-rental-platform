@@ -16,7 +16,6 @@ import { toast } from "@/components/ui/toast";
 
 export default function Page() {
     const { data: session, isPending } = authClient.useSession();
-    const ownerId = session?.user?.id;
 
     const [equipment, setEquipment] = useState<Equipment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,12 +38,12 @@ export default function Page() {
 
     // Fetch owner's equipment
     useEffect(() => {
-        async function fetchEquipment(id: string) {
+        async function fetchEquipment() {
             try {
                 setLoading(true);
                 setError("");
 
-                const data = await getOwnerEquipment(id);
+                const data = await getOwnerEquipment();
                 setEquipment(data);
             } catch {
                 setError("Failed to load your equipment.");
@@ -54,13 +53,13 @@ export default function Page() {
         }
 
         if (!isPending) {
-            if (ownerId) {
-                fetchEquipment(ownerId);
+            if (session?.user?.id) {
+                fetchEquipment();
             } else {
                 setLoading(false);
             }
         }
-    }, [ownerId, isPending]);
+    }, [session?.user?.id, isPending]);
 
     // Open edit modal
     function handleEdit(item: Equipment) {
@@ -76,12 +75,11 @@ export default function Page() {
         });
     }
 
-
     // Update equipment
     async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!editingItem || !ownerId) return;
+        if (!editingItem) return;
 
         try {
             setSaving(true);
@@ -129,15 +127,14 @@ export default function Page() {
         }
     }
 
-
     // Delete equipment
     async function handleDelete() {
-        if (!confirmDelete || !ownerId) return;
+        if (!confirmDelete) return;
 
         try {
             setDeleting(true);
 
-            await deleteEquipment(confirmDelete, ownerId);
+            await deleteEquipment(confirmDelete);
 
             setEquipment((previous) =>
                 previous.filter((item) => item._id !== confirmDelete)

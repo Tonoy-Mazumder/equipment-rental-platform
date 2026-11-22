@@ -89,21 +89,29 @@ export async function addEquipment(data: AddEquipmentData) {
 }
 
 
-export async function getOwnerEquipment(
-  ownerId: string
-): Promise<Equipment[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/equipment/owner/${ownerId}`
-  );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch owner equipment");
-  }
+export async function getOwnerEquipment(): Promise<Equipment[]> {
+    const { data, error } = await authClient.token();
 
-  const result: EquipmentListResponse = await response.json();
+    if (error || !data?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
 
-  return result.data;
+    const response = await fetch(`${API_BASE_URL}/equipment/owner`, {
+        headers: {
+            Authorization: `Bearer ${data.token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch owner equipment");
+    }
+
+    const result: EquipmentListResponse = await response.json();
+
+    return result.data;
 }
+
 
 // update equipment
 
