@@ -50,3 +50,33 @@ export async function getAdminEquipment() {
 
     return result.data as AdminEquipment[];
 }
+
+// get admin rentals
+export type AdminRental = {
+    _id: string;
+    equipmentId: string;
+    customerId: string;
+    ownerId: string;
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+    status: string;
+    createdAt: string;
+    customerName: string;
+    customerEmail: string;
+    ownerName: string;
+    ownerEmail: string;
+    equipmentName: string;
+};
+
+export async function getAdminRentals() {
+    const response = await fetch(`${API_BASE_URL}/admin/rentals`);
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to fetch rentals");
+    }
+
+    return result.data as AdminRental[];
+}
