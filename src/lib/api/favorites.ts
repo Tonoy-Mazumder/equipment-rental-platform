@@ -25,3 +25,25 @@ export async function addFavorite(equipmentId: string) {
 
   return result;
 }
+
+export async function getFavorites() {
+  const { data: tokenData, error } = await authClient.token();
+
+  if (error || !tokenData?.token) {
+    throw new Error("Authentication required. Please login again.");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/favorites`, {
+    headers: {
+      Authorization: `Bearer ${tokenData.token}`,
+    },
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch favorites");
+  }
+
+  return result.data;
+}
