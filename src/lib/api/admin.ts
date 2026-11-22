@@ -33,6 +33,7 @@ export type AdminEquipment = {
     images: string[];
     status: string;
     createdAt: string;
+    approvalStatus: "pending" | "approved" | "rejected"
 };
 
 export async function getAdminEquipment() {
@@ -67,6 +68,7 @@ export type AdminRental = {
     ownerName: string;
     ownerEmail: string;
     equipmentName: string;
+  
 };
 
 export async function getAdminRentals() {
@@ -102,6 +104,49 @@ export async function updateAdminUserRole(
 
     if (!response.ok) {
         throw new Error(result.message || "Failed to update user role");
+    }
+
+    return result;
+}
+
+// eqipment approved and delete by admin
+
+export async function updateEquipmentApproval(
+    equipmentId: string,
+    approvalStatus: "pending" | "approved" | "rejected"
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/equipment/${equipmentId}/approval`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ approvalStatus }),
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to update equipment");
+    }
+
+    return result;
+}
+
+export async function deleteAdminEquipment(equipmentId: string) {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/equipment/${equipmentId}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to delete equipment");
     }
 
     return result;
