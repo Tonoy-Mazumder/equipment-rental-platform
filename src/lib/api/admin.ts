@@ -1,5 +1,21 @@
-import { API_BASE_URL } from "./config";
 
+import { API_BASE_URL } from "./config";
+import { authClient } from "@/lib/auth-client";
+
+// Get JWT token
+async function getAuthHeaders() {
+    const { data, error } = await authClient.token();
+
+    if (error || !data?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
+
+    return {
+        Authorization: `Bearer ${data.token}`,
+    };
+}
+
+// Admin Users
 export type AdminUser = {
     _id: string;
     name: string;
@@ -10,7 +26,9 @@ export type AdminUser = {
 };
 
 export async function getAdminUsers() {
-    const response = await fetch(`${API_BASE_URL}/admin/users`);
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+        headers: await getAuthHeaders(),
+    });
 
     const result = await response.json();
 
@@ -21,7 +39,7 @@ export async function getAdminUsers() {
     return result.data as AdminUser[];
 }
 
-// get all Equipment for admin
+// Admin Equipment
 export type AdminEquipment = {
     _id: string;
     ownerId: string;
@@ -33,26 +51,24 @@ export type AdminEquipment = {
     images: string[];
     status: string;
     createdAt: string;
-    approvalStatus: "pending" | "approved" | "rejected"
+    approvalStatus: "pending" | "approved" | "rejected";
 };
 
 export async function getAdminEquipment() {
-    const response = await fetch(
-        `${API_BASE_URL}/admin/equipment`
-    );
+    const response = await fetch(`${API_BASE_URL}/admin/equipment`, {
+        headers: await getAuthHeaders(),
+    });
 
     const result = await response.json();
 
     if (!response.ok) {
-        throw new Error(
-            result.message || "Failed to fetch equipment"
-        );
+        throw new Error(result.message || "Failed to fetch equipment");
     }
 
     return result.data as AdminEquipment[];
 }
 
-// get admin rentals
+// Admin Rentals
 export type AdminRental = {
     _id: string;
     equipmentId: string;
@@ -68,11 +84,12 @@ export type AdminRental = {
     ownerName: string;
     ownerEmail: string;
     equipmentName: string;
-  
 };
 
 export async function getAdminRentals() {
-    const response = await fetch(`${API_BASE_URL}/admin/rentals`);
+    const response = await fetch(`${API_BASE_URL}/admin/rentals`, {
+        headers: await getAuthHeaders(),
+    });
 
     const result = await response.json();
 
@@ -83,8 +100,7 @@ export async function getAdminRentals() {
     return result.data as AdminRental[];
 }
 
-// role update by admin
-
+// Update User Role
 export async function updateAdminUserRole(
     userId: string,
     role: "customer" | "owner"
@@ -95,6 +111,7 @@ export async function updateAdminUserRole(
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
+                ...(await getAuthHeaders()),
             },
             body: JSON.stringify({ role }),
         }
@@ -109,8 +126,7 @@ export async function updateAdminUserRole(
     return result;
 }
 
-// eqipment approved and delete by admin
-
+// Update Equipment Approval
 export async function updateEquipmentApproval(
     equipmentId: string,
     approvalStatus: "pending" | "approved" | "rejected"
@@ -121,6 +137,7 @@ export async function updateEquipmentApproval(
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
+                ...(await getAuthHeaders()),
             },
             body: JSON.stringify({ approvalStatus }),
         }
@@ -135,11 +152,13 @@ export async function updateEquipmentApproval(
     return result;
 }
 
+// Delete Equipment
 export async function deleteAdminEquipment(equipmentId: string) {
     const response = await fetch(
         `${API_BASE_URL}/admin/equipment/${equipmentId}`,
         {
             method: "DELETE",
+            headers: await getAuthHeaders(),
         }
     );
 
