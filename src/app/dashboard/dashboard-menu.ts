@@ -42,6 +42,7 @@ export const dashboardMenus = {
     { title: "Equipment", path: "/equipment", icon: Package },
     { title: "Bookings", path: "/bookings", icon: CalendarDays },
     { title: "Reports", path: "/reports", icon: BarChart3 },
+    { title: "My Profile", path: "/profile", icon: UserRound },
     { title: "Settings", path: "/settings", icon: Settings },
   ],
 };
