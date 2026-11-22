@@ -31,7 +31,7 @@ export const dashboardMenus = {
   customer: [
     { title: "Overview", path: "", icon: LayoutDashboard },
     { title: "My Bookings", path: "/bookings", icon: CalendarDays },
-    { title: "Wishlist", path: "/wishlist", icon: Heart },
+    { title: "Favorites", path: "/favorites", icon: Heart },
     { title: "Payments", path: "/payments", icon: CreditCard },
     { title: "Settings", path: "/settings", icon: Settings },
   ],

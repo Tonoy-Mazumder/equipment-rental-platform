@@ -18,7 +18,9 @@ import {
   getEquipment,
   type Equipment,
 } from "@/lib/api/equipment";
-
+import { addFavorite, getFavorites } from "@/lib/api/favorites";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "@/components/ui/toast";
 // Equipment category styles
 function getEquipmentStyle(category: string) {
   const styles: Record<
@@ -60,12 +62,79 @@ function getEquipmentStyle(category: string) {
 }
 
 // Equipment card
+
 function EquipmentCard({ item }: { item: Equipment }) {
   const { icon: Icon, color } = getEquipmentStyle(item.category);
 
+  const { data: session } = authClient.useSession();
+  const isCustomer = session?.user?.role === "customer";
+
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    async function checkFavorite() {
+      try {
+        const favorites = await getFavorites();
+
+        const exists = favorites.some(
+          (favorite: { equipmentId: string }) =>
+            favorite.equipmentId === item._id,
+        );
+
+        setIsFavorite(exists);
+      } catch (error) {
+        console.error("Failed to check favorite:", error);
+      }
+    }
+
+    checkFavorite();
+  }, [session?.user?.id, item._id]);
+
+  async function handleFavorite() {
+    if (!session?.user?.id) {
+      toast.add({
+        title: "Login required",
+        description: "Please login to add favorites.",
+        type: "warning",
+      });
+      return;
+    }
+
+    if (isFavorite || favoriteLoading) return;
+
+    try {
+      setFavoriteLoading(true);
+
+      await addFavorite(item._id);
+      setIsFavorite(true);
+
+      toast.add({
+        title: "Success",
+        description: "Equipment added to favorites.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to add favorite",
+        type: "error",
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
+
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-[#2f3639] bg-[#1b2124]">
-      {/* Image area */}
       <div
         className="relative flex h-44 items-center justify-center overflow-hidden"
         style={{ backgroundImage: color }}
@@ -77,30 +146,36 @@ function EquipmentCard({ item }: { item: Equipment }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <Icon
-            className="size-14 text-white/90"
-            strokeWidth={1.5}
-          />
+          <Icon className="size-14 text-white/90" strokeWidth={1.5} />
         )}
 
         <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white">
           {item.category}
         </span>
 
-        <button
-          type="button"
-          aria-label={`Save ${item.name}`}
-          className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white text-neutral-900"
-        >
-          <Heart className="size-4" />
-        </button>
+        {isCustomer && (
+          <button
+            type="button"
+            onClick={handleFavorite}
+            disabled={favoriteLoading || isFavorite}
+            aria-label={
+              isFavorite
+                ? "Already in favorites"
+                : `Save ${item.name}`
+            }
+            className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white text-neutral-900 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <Heart
+              className={`size-4 ${
+                isFavorite ? "fill-red-500 text-red-500" : ""
+              }`}
+            />
+          </button>
+        )}
       </div>
 
-      {/* Equipment information */}
       <div className="p-4">
-        <h3 className="font-semibold text-white">
-          {item.name}
-        </h3>
+        <h3 className="font-semibold text-white">{item.name}</h3>
 
         <div className="mt-1 flex items-center gap-1 text-xs text-[#9a9c96]">
           <MapPin className="size-3.5" />

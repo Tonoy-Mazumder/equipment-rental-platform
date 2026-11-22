@@ -4,15 +4,25 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { HardHat, MapPin, Truck } from "lucide-react";
+import {
+  HardHat,
+  MapPin,
+  Truck,
+  Heart,
+} from "lucide-react";
+
 import { createBooking } from "@/lib/api/booking";
 import {
   getEquipmentById,
   type Equipment,
 } from "@/lib/api/equipment";
+import {
+  addFavorite,
+  getFavorites,
+} from "@/lib/api/favorites";
 
 import { authClient } from "@/lib/auth-client";
-
+import { toast } from "@/components/ui/toast";
 
 const bookedDays = [8, 9, 10, 16, 17];
 const daysInMonth = 30;
@@ -97,58 +107,58 @@ function BookingBox({
   const rentalPrice = days * pricePerDay;
 
   const serviceFee = Math.round(
-    (rentalPrice * SERVICE_FEE_PERCENT) / 100
+    (rentalPrice * SERVICE_FEE_PERCENT) / 100,
   );
 
   const total = rentalPrice + serviceFee;
 
   const allDays = Array.from(
     { length: daysInMonth },
-    (_, i) => i + 1
+    (_, i) => i + 1,
   );
 
   async function handleBooking() {
-  if (!customerId) {
-    setBookingMessage("Please login to book equipment.");
-    return;
+    if (!customerId) {
+      setBookingMessage("Please login to book equipment.");
+      return;
+    }
+
+    if (!startDay || !endDay) {
+      setBookingMessage("Please select rental dates.");
+      return;
+    }
+
+    if (!ownerId || customerId === ownerId) {
+      setBookingMessage("You cannot book your own equipment.");
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+      setBookingMessage("");
+
+      await createBooking({
+        equipmentId,
+        customerId,
+        ownerId,
+        startDate: `2026-11-${String(startDay).padStart(2, "0")}`,
+        endDate: `2026-11-${String(endDay).padStart(2, "0")}`,
+        totalPrice: total,
+      });
+
+      setBookingMessage("Booking request submitted successfully!");
+      setStartDay(null);
+      setEndDay(null);
+    } catch (error) {
+      setBookingMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to create booking.",
+      );
+    } finally {
+      setBookingLoading(false);
+    }
   }
-
-  if (!startDay || !endDay) {
-    setBookingMessage("Please select rental dates.");
-    return;
-  }
-
-  if (!ownerId || customerId === ownerId) {
-    setBookingMessage("You cannot book your own equipment.");
-    return;
-  }
-
-  try {
-    setBookingLoading(true);
-    setBookingMessage("");
-
-    await createBooking({
-      equipmentId,
-      customerId,
-      ownerId,
-      startDate: `2026-11-${String(startDay).padStart(2, "0")}`,
-      endDate: `2026-11-${String(endDay).padStart(2, "0")}`,
-      totalPrice: total,
-    });
-
-    setBookingMessage("Booking request submitted successfully!");
-    setStartDay(null);
-    setEndDay(null);
-  } catch (error) {
-    setBookingMessage(
-      error instanceof Error
-        ? error.message
-        : "Failed to create booking."
-    );
-  } finally {
-    setBookingLoading(false);
-  }
-}
 
   return (
     <aside className="h-fit rounded-2xl border border-[#2f3639] bg-[#1b2124] p-5 text-white">
@@ -262,12 +272,18 @@ export default function EquipmentDetails() {
   const id = params.id;
 
   const { data: session } = authClient.useSession();
+
   const customerId = session?.user?.id || "";
+  const isCustomer = session?.user?.role === "customer";
 
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Load equipment details
   useEffect(() => {
     async function loadEquipment() {
       try {
@@ -287,6 +303,70 @@ export default function EquipmentDetails() {
       loadEquipment();
     }
   }, [id]);
+
+  // Check whether equipment is already in favorites
+  useEffect(() => {
+    if (!customerId || !id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    async function checkFavorite() {
+      try {
+        const favorites = await getFavorites();
+
+        const alreadyFavorite = favorites.some(
+          (favorite: { equipmentId: string }) =>
+            favorite.equipmentId === id,
+        );
+
+        setIsFavorite(alreadyFavorite);
+      } catch (error) {
+        console.error("Failed to check favorite:", error);
+      }
+    }
+
+    checkFavorite();
+  }, [customerId, id]);
+
+  // Add equipment to favorites
+  async function handleAddFavorite() {
+    if (!customerId) {
+      toast.add({
+        title: "Login required",
+        description: "Please login to add favorites.",
+        type: "warning",
+      });
+      return;
+    }
+
+    if (isFavorite) return;
+
+    try {
+      setFavoriteLoading(true);
+
+      await addFavorite(id);
+
+      setIsFavorite(true);
+
+      toast.add({
+        title: "Success",
+        description: "Equipment added to favorites.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to add favorite",
+        type: "error",
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -344,7 +424,7 @@ export default function EquipmentDetails() {
 
         <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0">
-            {/* Equipment image gallery */}
+            {/* Equipment Image Gallery */}
             <div className="grid h-[310px] grid-cols-[2fr_1fr] gap-2.5">
               <ImageBox
                 icon={HardHat}
@@ -365,9 +445,33 @@ export default function EquipmentDetails() {
               </div>
             </div>
 
-            <h1 className="mt-5 text-3xl font-extrabold tracking-tight">
-              {equipment.name}
-            </h1>
+            {/* Equipment Name */}
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+              <h1 className="text-3xl font-extrabold tracking-tight">
+                {equipment.name}
+              </h1>
+
+              {isCustomer && (
+                <button
+                  type="button"
+                  onClick={handleAddFavorite}
+                  disabled={favoriteLoading || isFavorite}
+                  className="inline-flex items-center gap-2 rounded-lg border border-[#F28C28] px-4 py-2.5 text-sm font-semibold text-[#F28C28] transition-colors hover:bg-[#F28C28] hover:text-[#111719] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Heart
+                    className={`size-4 ${
+                      isFavorite ? "fill-current" : ""
+                    }`}
+                  />
+
+                  {favoriteLoading
+                    ? "Adding..."
+                    : isFavorite
+                      ? "Added to Favorites"
+                      : "Add to Favorites"}
+                </button>
+              )}
+            </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#9a9c96]">
               <span className="flex items-center gap-1">
