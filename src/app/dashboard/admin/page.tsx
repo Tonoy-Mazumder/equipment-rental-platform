@@ -78,6 +78,70 @@ function BreakdownItem({
   );
 }
 
+const months = [
+  "Jan", "Feb", "Mar", "Apr",
+  "May", "Jun", "Jul", "Aug",
+  "Sep", "Oct", "Nov", "Dec",
+];
+
+function MonthlyBookingChart({
+  monthlyStats,
+}: {
+  monthlyStats: AdminAnalytics["monthlyBookingStats"];
+}) {
+  const maximumBookings = Math.max(
+    1,
+    ...monthlyStats.map((item) => item.total)
+  );
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-foreground">
+          Monthly Booking Statistics
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          Booking activity throughout the current year.
+        </p>
+      </div>
+
+      <div className="grid h-64 grid-cols-12 items-end gap-2 sm:gap-4">
+        {months.map((month, index) => {
+          const total =
+            monthlyStats.find((item) => item.month === index + 1)?.total || 0;
+
+          const height =
+            total === 0 ? 0 : Math.max(5, (total / maximumBookings) * 100);
+
+          return (
+            <div
+              key={month}
+              className="flex h-full min-w-0 flex-col items-center justify-end gap-2"
+            >
+              <span className="text-[10px] font-medium text-muted-foreground sm:text-xs">
+                {total}
+              </span>
+
+              <div className="flex h-full w-full items-end justify-center">
+                <div
+                  className="w-full max-w-8 rounded-t-md bg-brand transition-all duration-300"
+                  style={{ height: `${height}%` }}
+                  title={`${month}: ${total} bookings`}
+                />
+              </div>
+
+              <span className="text-[10px] text-muted-foreground sm:text-xs">
+                {month}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminOverviewPage() {
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -139,11 +203,13 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">
             Admin Overview
           </h1>
+
           <p className="mt-1 text-sm text-muted-foreground">
             Monitor your RentPro platform activities.
           </p>
@@ -177,7 +243,7 @@ export default function AdminOverviewPage() {
         <StatCard
           title="Total Rentals"
           value={analytics.rentals.total.toLocaleString()}
-          description={`${analytics.rentals.approved} approved rentals`}
+          description={`${analytics.rentals.completed} completed rentals`}
           icon={CalendarDays}
         />
 
@@ -188,6 +254,11 @@ export default function AdminOverviewPage() {
           icon={DollarSign}
         />
       </div>
+
+      {/* Monthly Booking Chart */}
+      <MonthlyBookingChart
+        monthlyStats={analytics.monthlyBookingStats}
+      />
 
       {/* Detailed Statistics */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -253,6 +324,12 @@ export default function AdminOverviewPage() {
           <BreakdownItem
             label="Approved"
             value={analytics.rentals.approved}
+            icon={CheckCircle2}
+          />
+
+          <BreakdownItem
+            label="Completed"
+            value={analytics.rentals.completed}
             icon={CheckCircle2}
           />
 

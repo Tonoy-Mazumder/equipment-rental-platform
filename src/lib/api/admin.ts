@@ -15,6 +15,7 @@ async function getAuthHeaders() {
 }
 
 // Admin Analytics
+
 export type AdminAnalytics = {
   users: {
     total: number;
@@ -33,9 +34,15 @@ export type AdminAnalytics = {
     pending: number;
     approved: number;
     cancelled: number;
+    completed: number;
   };
   totalRevenue: number;
+  monthlyBookingStats: {
+    month: number;
+    total: number;
+  }[];
 };
+
 
 export async function getAdminAnalytics() {
   const response = await fetch(`${API_BASE_URL}/admin/analytics`, {
