@@ -10,10 +10,17 @@ type CreateBookingData = {
 };
 
 export async function createBooking(data: CreateBookingData) {
+  const { data: tokenData, error } = await authClient.token();
+
+  if (error || !tokenData?.token) {
+    throw new Error("Authentication required. Please login again.");
+  }
+
   const response = await fetch(`${API_BASE_URL}/bookings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${tokenData.token}`,
     },
     body: JSON.stringify(data),
   });
