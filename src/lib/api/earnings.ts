@@ -1,4 +1,5 @@
 
+import { authClient } from "../auth-client";
 import { API_BASE_URL } from "./config";
 
 export type EarningsData = {
@@ -21,10 +22,22 @@ export type EarningsData = {
     }[];
 };
 
-export async function getOwnerEarnings(ownerId: string) {
-    const response = await fetch(
-        `${API_BASE_URL}/earnings/owner/${ownerId}`
-    );
+
+
+
+
+export async function getOwnerEarnings() {
+    const { data, error } = await authClient.token();
+
+    if (error || !data?.token) {
+        throw new Error("Authentication required. Please login again.");
+    }
+
+    const response = await fetch(`${API_BASE_URL}/earnings/owner`, {
+        headers: {
+            Authorization: `Bearer ${data.token}`,
+        },
+    });
 
     const result = await response.json();
 

@@ -11,7 +11,7 @@ import {
     Receipt,
 } from "lucide-react";
 
-import { authClient } from "@/lib/auth-client";
+
 import {
     getOwnerEarnings,
     type EarningsData,
@@ -22,41 +22,33 @@ const pageWrapper =
     "dark -m-5 min-h-full bg-background p-5 text-foreground md:-m-8 md:p-8";
 
 export default function OwnerEarningsPage() {
-    const { data: session, isPending } = authClient.useSession();
+   
 
     const [earnings, setEarnings] = useState<EarningsData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const ownerId = session?.user?.id;
-
-        if (!ownerId) {
-            if (!isPending) setLoading(false);
-            return;
+    async function loadEarnings() {
+        try {
+            const data = await getOwnerEarnings();
+            setEarnings(data);
+        } catch (error) {
+            toast.add({
+                title: "Error",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load earnings",
+                type: "error",
+            });
+        } finally {
+            setLoading(false);
         }
+    }
 
-        async function loadEarnings(id: string) {
-            try {
-                const data = await getOwnerEarnings(id);
-                setEarnings(data);
-            } catch (error) {
-                toast.add({
-                    title: "Error",
-                    description:
-                        error instanceof Error
-                            ? error.message
-                            : "Failed to load earnings",
-                    type: "error",
-                });
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadEarnings(ownerId);
-    }, [session?.user?.id, isPending]);
-
-    if (isPending || loading) {
+    loadEarnings();
+}, []);
+    if ( loading) {
         return (
             <div className={pageWrapper}>
                 <p>Loading earnings...</p>
