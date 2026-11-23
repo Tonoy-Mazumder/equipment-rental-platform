@@ -28,14 +28,32 @@ export function AuthForm({
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const password = String(formData.get("password") || "");
+    const image = String(formData.get("image") || "").trim();
 
     if (!name || !email || !password) {
       toast.add({
         title: "Missing information",
-        description: "Please fill in all fields.",
+        description: "Please fill in all required fields.",
         type: "error",
       });
       return;
+    }
+
+    if (image) {
+      try {
+        const imageUrl = new URL(image);
+
+        if (!["http:", "https:"].includes(imageUrl.protocol)) {
+          throw new Error("Invalid image URL");
+        }
+      } catch {
+        toast.add({
+          title: "Invalid image URL",
+          description: "Please enter a valid image URL.",
+          type: "error",
+        });
+        return;
+      }
     }
 
     if (password.length < 8) {
@@ -90,6 +108,7 @@ export function AuthForm({
         name,
         email,
         password,
+        image: image || undefined,
         role: userRole,
       });
 
@@ -123,7 +142,12 @@ export function AuthForm({
   return (
     <form className={className} onSubmit={handleSubmit}>
       {children}
-      <button type="submit" disabled={isSubmitting} className="sr-only">
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="sr-only"
+      >
         Create account
       </button>
     </form>

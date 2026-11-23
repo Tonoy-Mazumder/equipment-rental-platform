@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X, UserRound, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { buttonVariants } from "@/components/ui/button";
@@ -33,6 +33,29 @@ function getDashboardPath(role?: string) {
   if (role === "admin") return "/dashboard/admin";
   if (role === "owner") return "/dashboard/owner";
   return "/dashboard/customer";
+}
+
+function UserAvatar({
+  image,
+  name,
+}: {
+  image?: string | null;
+  name?: string | null;
+}) {
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-sm font-semibold text-foreground">
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={image}
+          alt={`${name || "User"} profile`}
+          className="size-full object-cover"
+        />
+      ) : (
+        name?.charAt(0).toUpperCase() || "U"
+      )}
+    </span>
+  );
 }
 
 export function Navbar() {
@@ -83,22 +106,24 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {!isPending && user ? (
-
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-background/10">
-                <span className="flex size-8 items-center justify-center rounded-full bg-brand text-foreground">
-                  {user.name?.charAt(0).toUpperCase() || "U"}
-                </span>
-                {user.name}
+                <UserAvatar image={user.image} name={user.name} />
+                <span>{user.name}</span>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>
-                    <p>{user.name}</p>
-                    <p className="font-normal text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <UserAvatar image={user.image} name={user.name} />
+                      <div className="min-w-0">
+                        <p className="truncate">{user.name}</p>
+                        <p className="truncate font-normal text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
                   </DropdownMenuLabel>
 
                   <DropdownMenuSeparator />
@@ -177,13 +202,23 @@ export function Navbar() {
               </Link>
             ))}
 
-            {!isPending && (
-              user ? (
+            {!isPending &&
+              (user ? (
                 <>
                   <div className="my-2 border-t border-background/10" />
-                  <p className="px-2 py-2 text-sm font-medium">
-                    {user.name}
-                  </p>
+
+                  <div className="flex items-center gap-3 px-2 py-3">
+                    <UserAvatar image={user.image} name={user.name} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {user.name}
+                      </p>
+                      <p className="truncate text-xs text-background/60">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
                   <Link
                     href={dashboardPath}
                     onClick={closeMenu}
@@ -192,6 +227,7 @@ export function Navbar() {
                     <LayoutDashboard className="size-4" />
                     Dashboard
                   </Link>
+
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -210,6 +246,7 @@ export function Navbar() {
                   >
                     Log in
                   </Link>
+
                   <Link
                     href="/signup"
                     onClick={closeMenu}
@@ -221,8 +258,7 @@ export function Navbar() {
                     Sign up
                   </Link>
                 </>
-              )
-            )}
+              ))}
           </nav>
         </div>
       )}
