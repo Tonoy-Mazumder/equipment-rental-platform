@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
@@ -256,7 +257,10 @@ export default function CustomerBookingsPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={6} className="p-10 text-center">
-                                        Loading bookings...
+                                        <Loading
+                                            className="min-h-0 py-4"
+                                            label="Loading bookings..."
+                                        />
                                     </td>
                                 </tr>
                             ) : error ? (

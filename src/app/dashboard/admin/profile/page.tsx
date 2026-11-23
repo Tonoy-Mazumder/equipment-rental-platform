@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   User,
   Mail,
@@ -91,11 +92,7 @@ export default function AdminProfilePage() {
   }
 
   if (isPending) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-muted-foreground">Loading profile...</p>
-      </div>
-    );
+    return <Loading className="min-h-[60vh]" label="Loading profile..." />;
   }
 
   if (!user) {

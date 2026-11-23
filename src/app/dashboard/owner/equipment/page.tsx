@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import Link from "next/link";
 import { Plus, MapPin, Package, Pencil, X, Trash2 } from "lucide-react";
 
@@ -162,7 +163,7 @@ export default function Page() {
     }
 
     if (isPending || loading) {
-        return <div className="p-6">Loading equipment...</div>;
+        return <Loading label="Loading equipment..." />;
     }
 
     if (!session?.user?.id) {

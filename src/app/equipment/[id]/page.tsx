@@ -23,6 +23,7 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
+import { Loading } from "@/components/loading";
 
 const bookedDays = [8, 9, 10, 16, 17];
 const daysInMonth = 30;
@@ -363,10 +364,11 @@ export default function EquipmentDetails() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#111719] text-white">
-        <p className="text-[#9a9c96]">
-          Loading equipment details...
-        </p>
+      <main className="min-h-screen bg-[#111719] text-white">
+        <Loading
+          className="min-h-screen"
+          label="Loading equipment details..."
+        />
       </main>
     );
   }

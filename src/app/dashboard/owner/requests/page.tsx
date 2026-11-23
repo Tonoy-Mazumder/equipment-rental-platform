@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   getOwnerBookings,
   updateBookingStatus,
@@ -73,7 +74,7 @@ export default function OwnerRequestsPage() {
   }
 
   if (loading) {
-    return <p className="p-6">Loading rental requests...</p>;
+    return <Loading label="Loading rental requests..." />;
   }
 
   return (

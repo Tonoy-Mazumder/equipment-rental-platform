@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import { authClient } from "@/lib/auth-client";
 import { getOwnerRentalHistory, type Booking } from "@/lib/api/booking";
 import { toast } from "@/components/ui/toast";
@@ -57,7 +58,7 @@ export default function OwnerRentalHistoryPage() {
     };
 
     if (loading) {
-        return <p className="p-6">Loading rental history...</p>;
+        return <Loading label="Loading rental history..." />;
     }
 
     return (

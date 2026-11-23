@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Loading } from "@/components/loading";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { API_BASE_URL } from "@/lib/api/config";
@@ -81,7 +82,7 @@ const AddNewEquipmentPage = () => {
 
 
   if (isPending) {
-    return <div className="p-6">Loading...</div>;
+    return <Loading label="Loading..." />;
   }
 
   if (!session?.user?.id) {

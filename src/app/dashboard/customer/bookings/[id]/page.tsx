@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
 
 import BookingActions from "@/components/booking-actions";
@@ -67,11 +68,7 @@ export default function CustomerBookingPage() {
     }, [id]);
 
     if (loading) {
-        return (
-            <div className="flex min-h-[400px] items-center justify-center">
-                <p className="text-muted-foreground">Loading booking details...</p>
-            </div>
-        );
+        return <Loading label="Loading booking details..." />;
     }
 
     if (error || !booking) {

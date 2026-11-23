@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import { Heart, MapPin, Package, Trash2 } from "lucide-react";
 
 import {
@@ -86,13 +87,7 @@ export default function CustomerFavoritesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-muted-foreground">
-          Loading your favorites...
-        </p>
-      </div>
-    );
+    return <Loading label="Loading your favorites..." />;
   }
 
   return (

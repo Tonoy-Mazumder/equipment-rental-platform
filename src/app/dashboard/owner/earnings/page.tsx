@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
     DollarSign,
     TrendingUp,
@@ -49,11 +50,7 @@ export default function OwnerEarningsPage() {
     loadEarnings();
 }, []);
     if ( loading) {
-        return (
-            <div className={pageWrapper}>
-                <p>Loading earnings...</p>
-            </div>
-        );
+        return <Loading label="Loading earnings..." />;
     }
 
     if (!earnings) {

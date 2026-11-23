@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   Search,
   CalendarDays,
@@ -226,9 +227,7 @@ export default function AdminRentalsPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-gray-400">
-            Loading rentals...
-          </div>
+          <Loading className="min-h-0 py-16" label="Loading rentals..." />
         ) : error ? (
           <div className="py-16 text-center text-red-400">
             {error}

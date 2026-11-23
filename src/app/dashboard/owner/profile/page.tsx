@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loading } from "@/components/loading";
 import { authClient } from "@/lib/auth-client";
 import {
     User,
@@ -30,7 +31,7 @@ export default function OwnerProfilePage() {
     const [location, setLocation] = useState("");
 
     if (isPending) {
-        return <div className="p-6">Loading profile...</div>;
+        return <Loading label="Loading profile..." />;
     }
 
     if (!session?.user) {

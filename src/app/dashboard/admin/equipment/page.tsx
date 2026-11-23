@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   Search,
   Package,
@@ -279,9 +280,7 @@ export default function AdminEquipmentPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-gray-400">
-            Loading equipment...
-          </div>
+          <Loading className="min-h-0 py-16" label="Loading equipment..." />
         ) : error ? (
           <div className="py-16 text-center text-red-400">{error}</div>
         ) : filteredEquipment.length === 0 ? (

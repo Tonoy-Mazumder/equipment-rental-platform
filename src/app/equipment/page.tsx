@@ -22,6 +22,7 @@ import {
 import { addFavorite, getFavorites } from "@/lib/api/favorites";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
+import { Loading } from "@/components/loading";
 
 // Equipment category styles
 function getEquipmentStyle(category: string) {
@@ -411,9 +412,7 @@ export default function BrowseEquipment() {
             </div>
 
             {loading ? (
-              <p className="text-[#9a9c96]">
-                Loading equipment...
-              </p>
+              <Loading className="min-h-0 py-10" label="Loading equipment..." />
             ) : error ? (
               <p className="text-red-400">{error}</p>
             ) : sorted.length === 0 ? (

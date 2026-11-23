@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   Search,
   Users,
@@ -171,9 +172,7 @@ export default function AdminUserPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-gray-400">
-            Loading users...
-          </div>
+          <Loading className="min-h-0 py-16" label="Loading users..." />
         ) : error ? (
           <div className="py-16 text-center text-red-400">
             {error}

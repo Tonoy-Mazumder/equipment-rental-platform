@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Loading } from "@/components/loading";
 import {
   Users,
   Package,
@@ -170,11 +171,7 @@ export default function AdminOverviewPage() {
   }, [fetchAnalytics]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <RefreshCw className="animate-spin text-brand" size={30} />
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error || !analytics) {
