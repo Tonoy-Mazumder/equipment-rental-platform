@@ -4,9 +4,9 @@
 import { useEffect, useState } from "react";
 import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
-
 import BookingActions from "@/components/booking-actions";
 import { getBookingById } from "@/lib/api/booking";
+import { getEquipment, type Equipment } from "@/lib/api/equipment";
 
 import {
     CalendarDays,
@@ -14,8 +14,12 @@ import {
     Clock,
     CheckCircle2,
     CreditCard,
+    Package,
+    Phone,
+    MapPinned,
+    MessageSquare,
 } from "lucide-react";
-import { getEquipment, type Equipment } from "@/lib/api/equipment";
+
 type BookingData = Awaited<ReturnType<typeof getBookingById>>;
 
 export default function CustomerBookingPage() {
@@ -35,15 +39,24 @@ export default function CustomerBookingPage() {
                 setError("");
 
                 const data = await getBookingById(id);
-                const equipmentList = await getEquipment();
 
-                const matchedEquipment = equipmentList.find(
-                    (item) => item._id === data.equipmentId,
-                );
+                if (!isMounted) return;
 
-                if (isMounted) {
-                    setBooking(data);
-                    setEquipment(matchedEquipment ?? null);
+                setBooking(data);
+
+                // Equipment fetch is separate so booking still displays
+                try {
+                    const equipmentList = await getEquipment();
+
+                    const matchedEquipment = equipmentList.find(
+                        (item) => item._id === data.equipmentId,
+                    );
+
+                    if (isMounted) {
+                        setEquipment(matchedEquipment ?? null);
+                    }
+                } catch (equipmentError) {
+                    console.error("Equipment fetch failed:", equipmentError);
                 }
             } catch (error) {
                 if (isMounted) {
@@ -97,8 +110,10 @@ export default function CustomerBookingPage() {
             (new Date(booking.endDate).getTime() -
                 new Date(booking.startDate).getTime()) /
             (1000 * 60 * 60 * 24),
-        ),
+        ) + 1,
     );
+
+    const quantity = booking.quantity || 1;
 
     const formatDate = (date: string) =>
         new Date(date).toLocaleDateString("en-US", {
@@ -146,6 +161,7 @@ export default function CustomerBookingPage() {
                                 {formatShortDate(booking.startDate)} -{" "}
                                 {formatShortDate(booking.endDate)}
                             </span>
+
                             <span className="flex items-center gap-2">
                                 <MapPin size={16} />
                                 {equipment?.location ?? "Location unavailable"}
@@ -165,7 +181,6 @@ export default function CustomerBookingPage() {
                         <p className="text-sm text-muted-foreground">
                             Booking ID
                         </p>
-
                         <p className="mt-1 break-all text-sm font-medium">
                             {booking._id}
                         </p>
@@ -175,11 +190,95 @@ export default function CustomerBookingPage() {
                         <p className="text-sm text-muted-foreground">
                             Equipment ID
                         </p>
-
                         <p className="mt-1 break-all text-sm font-medium">
                             {booking.equipmentId}
                         </p>
                     </div>
+                </div>
+            </div>
+
+            {/* Rental Information */}
+            <div className="rounded-xl border bg-card p-5 sm:p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
+                    <Package size={19} />
+                    Rental Information
+                </h2>
+
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Equipment Quantity
+                        </p>
+                        <p className="mt-1 font-semibold">
+                            {quantity} {quantity === 1 ? "unit" : "units"}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Rental Duration
+                        </p>
+                        <p className="mt-1 font-semibold">
+                            {rentalDays} days
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Start Date
+                        </p>
+                        <p className="mt-1 font-semibold">
+                            {formatDate(booking.startDate)}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            End Date
+                        </p>
+                        <p className="mt-1 font-semibold">
+                            {formatDate(booking.endDate)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Customer Contact Information */}
+            <div className="rounded-xl border bg-card p-5 sm:p-6">
+                <h2 className="text-lg font-bold">
+                    Customer Contact Information
+                </h2>
+
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Phone size={16} />
+                            Phone Number
+                        </p>
+                        <p className="mt-1 font-medium">
+                            {booking.phone || "Not provided"}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <MapPinned size={16} />
+                            Address
+                        </p>
+                        <p className="mt-1 font-medium">
+                            {booking.address || "Not provided"}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-5 border-t pt-5">
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MessageSquare size={16} />
+                        Additional Notes
+                    </p>
+                    <p className="mt-2 text-sm">
+                        {booking.notes || "No additional notes."}
+                    </p>
                 </div>
             </div>
 
@@ -195,12 +294,10 @@ export default function CustomerBookingPage() {
                     <div className="mt-6 space-y-6">
                         <div className="flex gap-3">
                             <CheckCircle2 className="shrink-0 text-green-400" />
-
                             <div>
                                 <p className="text-sm font-medium">
                                     Booking requested
                                 </p>
-
                                 <p className="text-xs text-muted-foreground">
                                     {formatDate(booking.createdAt)}
                                 </p>
@@ -208,13 +305,17 @@ export default function CustomerBookingPage() {
                         </div>
 
                         <div className="flex gap-3">
-                            <Clock className="shrink-0 text-muted-foreground" />
-
+                            <CheckCircle2
+                                className={`shrink-0 ${
+                                    booking.status === "approved"
+                                        ? "text-green-400"
+                                        : "text-muted-foreground"
+                                }`}
+                            />
                             <div>
                                 <p className="text-sm font-medium">
                                     Owner confirmation
                                 </p>
-
                                 <p className="text-xs text-muted-foreground">
                                     {booking.status === "approved"
                                         ? "Confirmed"
@@ -228,23 +329,29 @@ export default function CustomerBookingPage() {
                         </div>
 
                         <div className="flex gap-3">
-                            <Clock className="shrink-0 text-muted-foreground" />
-
+                            <CreditCard
+                                className={`shrink-0 ${
+                                    booking.paymentStatus === "paid"
+                                        ? "text-green-400"
+                                        : "text-muted-foreground"
+                                }`}
+                            />
                             <div>
-                                <p className="text-sm font-medium">Payment</p>
-
-                                <p className="text-xs text-muted-foreground">
-                                    Payment information unavailable
+                                <p className="text-sm font-medium">
+                                    Payment
+                                </p>
+                                <p className="text-xs capitalize text-muted-foreground">
+                                    {booking.paymentStatus || "Not available"}
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex gap-3">
                             <CalendarDays className="shrink-0 text-muted-foreground" />
-
                             <div>
-                                <p className="text-sm font-medium">Rental start</p>
-
+                                <p className="text-sm font-medium">
+                                    Rental start
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                     {formatDate(booking.startDate)}
                                 </p>
@@ -263,26 +370,44 @@ export default function CustomerBookingPage() {
                     <div className="mt-6 space-y-4">
                         <div className="flex justify-between gap-3 text-sm">
                             <span className="text-muted-foreground">
-                                {rentalDays} days rental
+                                Rental duration
                             </span>
-
                             <span className="font-medium">
-                                ${booking.totalPrice.toLocaleString()}
+                                {rentalDays} days
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between gap-3 text-sm">
+                            <span className="text-muted-foreground">
+                                Equipment quantity
+                            </span>
+                            <span className="font-medium">
+                                {quantity}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between gap-3 text-sm">
+                            <span className="text-muted-foreground">
+                                Payment status
+                            </span>
+                            <span
+                                className={
+                                    booking.paymentStatus === "paid"
+                                        ? "font-semibold text-green-400"
+                                        : "font-medium"
+                                }
+                            >
+                                {booking.paymentStatus || "Unavailable"}
                             </span>
                         </div>
 
                         <div className="border-t pt-4">
                             <div className="flex justify-between text-base font-bold">
                                 <span>Total Amount</span>
-
                                 <span>
                                     ${booking.totalPrice.toLocaleString()}
                                 </span>
                             </div>
-
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                Payment status is not available yet.
-                            </p>
                         </div>
                     </div>
                 </div>

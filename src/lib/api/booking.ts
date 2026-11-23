@@ -45,6 +45,14 @@ export type Booking = {
   totalPrice: number;
   status: "pending" | "approved" | "rejected" | "completed" | "cancelled";
   createdAt: string;
+
+  // Additional booking information
+  quantity?: number;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  paymentStatus?: "paid" | "unpaid" | "refunded";
+
   customerName?: string;
   customerEmail?: string;
   equipmentName?: string;

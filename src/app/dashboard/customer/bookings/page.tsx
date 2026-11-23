@@ -2,16 +2,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loading } from "@/components/loading";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
+import { Loading } from "@/components/loading";
 import {
     getCustomerBookings,
     cancelBooking,
     type Booking,
 } from "@/lib/api/booking";
-import { getEquipment } from "@/lib/api/equipment";
+import {
+    getEquipment,
+    type Equipment,
+} from "@/lib/api/equipment";
 import { toast } from "@/components/ui/toast";
 
 import {
@@ -77,6 +80,13 @@ function getStatus(status: Booking["status"]) {
         };
     }
 
+    if (status === "rejected") {
+        return {
+            label: "Rejected",
+            color: "bg-red-500/10 text-red-400",
+        };
+    }
+
     return {
         label: "Cancelled",
         color: "bg-red-500/10 text-red-400",
@@ -95,54 +105,53 @@ export default function CustomerBookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState("");
 
     // Load customer bookings
-  
-useEffect(() => {
-    async function loadBookings() {
-        try {
-            setLoading(true);
-            setError("");
-
-            // First, fetch customer bookings
-            const bookingData = await getCustomerBookings();
-
-            // Then fetch equipment separately
-            let equipmentData = [];
-
+    useEffect(() => {
+        async function loadBookings() {
             try {
-                equipmentData = await getEquipment();
-            } catch (error) {
-                console.error("Equipment fetch failed:", error);
-            }
+                setLoading(true);
+                setError("");
 
-            // Map equipment names to bookings
-            const bookingItems = bookingData.map((booking) => {
-                const equipment = equipmentData.find(
-                    (item) => item._id === booking.equipmentId
+                // Fetch customer bookings first
+                const bookingData = await getCustomerBookings();
+
+                // Fetch equipment separately
+                let equipmentData: Equipment[] = [];
+
+                try {
+                    equipmentData = await getEquipment();
+                } catch (error) {
+                    console.error("Equipment fetch failed:", error);
+                }
+
+                // Add equipment names to bookings
+                const bookingItems: BookingItem[] = bookingData.map(
+                    (booking) => {
+                        const equipment = equipmentData.find(
+                            (item) => item._id === booking.equipmentId
+                        );
+
+                        return {
+                            ...booking,
+                            equipmentName:
+                                equipment?.name || "Equipment not found",
+                        };
+                    }
                 );
 
-                return {
-                    ...booking,
-                    equipmentName: equipment?.name || "Equipment not found",
-                };
-            });
-
-            console.log("Customer bookings:", bookingItems);
-
-            setBookings(bookingItems);
-        } catch (error) {
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to load bookings"
-            );
-        } finally {
-            setLoading(false);
+                setBookings(bookingItems);
+            } catch (error) {
+                setError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load bookings"
+                );
+            } finally {
+                setLoading(false);
+            }
         }
-    }
 
-    loadBookings();
-}, []);
-
+        loadBookings();
+    }, []);
 
     // Cancel booking
     async function handleCancel(bookingId: string) {
@@ -302,7 +311,10 @@ useEffect(() => {
                                             className="hover:bg-muted/30"
                                         >
                                             <td className="px-4 py-5">
-                                                BK-{booking._id.slice(-4).toUpperCase()}
+                                                BK-
+                                                {booking._id
+                                                    .slice(-4)
+                                                    .toUpperCase()}
                                             </td>
 
                                             <td className="px-4 py-5">
