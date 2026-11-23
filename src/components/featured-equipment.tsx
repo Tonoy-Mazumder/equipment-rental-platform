@@ -20,6 +20,7 @@ import {
 } from "@/lib/api/equipment";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Loading } from "@/components/loading";
 
 function getEquipmentIcon(category: string) {
   const icons: Record<string, typeof HardHat> = {
@@ -142,9 +143,10 @@ export function FeaturedEquipment() {
       </div>
 
       {loading ? (
-        <p className="mt-6 text-sm text-background/60">
-          Loading equipment...
-        </p>
+        <Loading
+          className="mt-6 min-h-0 py-10"
+          label="Loading equipment..."
+        />
       ) : equipment.length === 0 ? (
         <p className="mt-6 text-sm text-background/60">
           No equipment available right now.
