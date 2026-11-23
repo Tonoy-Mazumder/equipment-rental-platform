@@ -113,7 +113,7 @@ export default function AdminUserPage() {
   ).length;
 
   return (
-    <div className="-m-5 min-h-full space-y-6 bg-[#171717] p-5 text-white md:-m-8 md:p-8">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">All Users</h1>

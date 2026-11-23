@@ -91,7 +91,7 @@ export default function CustomerFavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen space-y-8 bg-background p-4 text-foreground sm:p-6 lg:p-8">
+    <div className="space-y-8">
       {/* Page Heading */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>

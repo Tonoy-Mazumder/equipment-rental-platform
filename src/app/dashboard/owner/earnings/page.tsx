@@ -19,9 +19,6 @@ import {
 } from "@/lib/api/earnings";
 import { toast } from "@/components/ui/toast";
 
-const pageWrapper =
-    "dark -m-5 min-h-full bg-background p-5 text-foreground md:-m-8 md:p-8";
-
 export default function OwnerEarningsPage() {
    
 
@@ -55,7 +52,7 @@ export default function OwnerEarningsPage() {
 
     if (!earnings) {
         return (
-            <div className={pageWrapper}>
+            <div>
                 <div className="rounded-xl border border-border bg-card p-8 text-center">
                     <p className="text-muted-foreground">
                         Unable to load earnings data.
@@ -98,7 +95,7 @@ export default function OwnerEarningsPage() {
     );
 
     return (
-        <div className={pageWrapper}>
+        <div>
             <div className="mx-auto max-w-6xl space-y-8">
                 {/* Heading */}
                 <div>

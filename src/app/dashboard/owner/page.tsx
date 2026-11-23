@@ -26,7 +26,7 @@ const requests = [
 
 export default function OwnerDashboardPage() {
   return (
-    <div className="dark -m-5 min-h-full bg-background p-5 text-foreground md:-m-8 md:p-8">
+    <div>
       {/* Search + avatar */}
       <div className="flex items-center justify-between gap-4">
         <Input
