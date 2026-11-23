@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { Loading } from "@/components/loading";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { API_BASE_URL } from "@/lib/api/config";
 import { addEquipment } from "@/lib/api/equipment";
 
 const categories = [
@@ -27,6 +26,7 @@ const AddNewEquipmentPage = () => {
     category: "",
     description: "",
     pricePerDay: "",
+    quantity: "1",
     location: "",
     image: "",
   });
@@ -35,7 +35,9 @@ const AddNewEquipmentPage = () => {
   const [error, setError] = useState("");
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -45,12 +47,24 @@ const AddNewEquipmentPage = () => {
     }));
   };
 
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!session?.user?.id) {
       setError("Please login to add equipment.");
+      return;
+    }
+
+    const quantity = Number(formData.quantity);
+    const pricePerDay = Number(formData.pricePerDay);
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      setError("Quantity must be a positive whole number.");
+      return;
+    }
+
+    if (!Number.isFinite(pricePerDay) || pricePerDay <= 0) {
+      setError("Price must be greater than zero.");
       return;
     }
 
@@ -62,7 +76,8 @@ const AddNewEquipmentPage = () => {
         name: formData.name,
         category: formData.category,
         description: formData.description,
-        pricePerDay: Number(formData.pricePerDay),
+        pricePerDay,
+        quantity,
         location: formData.location,
         images: formData.image ? [formData.image] : [],
       });
@@ -79,7 +94,6 @@ const AddNewEquipmentPage = () => {
       setLoading(false);
     }
   };
-
 
   if (isPending) {
     return <Loading label="Loading..." />;
@@ -164,6 +178,7 @@ const AddNewEquipmentPage = () => {
               name="pricePerDay"
               type="number"
               min="1"
+              step="0.01"
               value={formData.pricePerDay}
               onChange={handleChange}
               placeholder="80"
@@ -173,19 +188,37 @@ const AddNewEquipmentPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="location" className="text-sm font-medium">
-              Location
+            <label htmlFor="quantity" className="text-sm font-medium">
+              Available Quantity
             </label>
             <input
-              id="location"
-              name="location"
-              value={formData.location}
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="1"
+              step="1"
+              value={formData.quantity}
               onChange={handleChange}
-              placeholder="Dhaka, Bangladesh"
+              placeholder="1"
               required
               className="w-full rounded-lg border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="location" className="text-sm font-medium">
+            Location
+          </label>
+          <input
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Dhaka, Bangladesh"
+            required
+            className="w-full rounded-lg border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+          />
         </div>
 
         <div className="space-y-2">

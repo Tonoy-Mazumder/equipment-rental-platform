@@ -80,6 +80,7 @@ type AddEquipmentData = {
   category: string;
   description: string;
   pricePerDay: number;
+  quantity: number;
   location: string;
   images: string[];
 };
