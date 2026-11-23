@@ -62,7 +62,7 @@ function OwnerCta() {
           <p className="mt-1.5">List it free and start earning in days.</p>
         </div>
         <Link
-          href="/register"
+          href="/signup"
           className="rounded-xl bg-[#111719] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
         >
           Become an owner
