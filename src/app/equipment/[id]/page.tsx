@@ -25,8 +25,6 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "@/components/ui/toast";
 import { Loading } from "@/components/loading";
 
-const bookedDays = [8, 9, 10, 16, 17];
-const daysInMonth = 30;
 const SERVICE_FEE_PERCENT = 5;
 
 function ImageBox({
@@ -58,54 +56,53 @@ function ImageBox({
   );
 }
 
+// Booking Form
 function BookingBox({
   pricePerDay,
+  quantity: availableQuantity,
   available,
   equipmentId,
   ownerId,
   customerId,
 }: {
   pricePerDay: number;
+  quantity: number;
   available: boolean;
   equipmentId: string;
   ownerId: string;
   customerId: string;
 }) {
-  const [startDay, setStartDay] = useState<number | null>(null);
-  const [endDay, setEndDay] = useState<number | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
+
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState("");
 
-  function handleDayClick(day: number) {
-    setBookingMessage("");
+  const today = new Date();
 
-    if (startDay === null || endDay !== null) {
-      setStartDay(day);
-      setEndDay(null);
-      return;
-    }
+  const minDate = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
 
-    if (day < startDay) {
-      setEndDay(startDay);
-      setStartDay(day);
-    } else {
-      setEndDay(day);
-    }
-  }
-
-  function isSelected(day: number) {
-    if (startDay === null) return false;
-    if (endDay === null) return day === startDay;
-
-    return day >= startDay && day <= endDay;
-  }
+  const selectedQuantity = Number(quantity);
 
   const days =
-    startDay !== null && endDay !== null
-      ? endDay - startDay + 1
+    startDate && endDate && endDate >= startDate
+      ? Math.floor(
+          (Date.parse(`${endDate}T00:00:00Z`) -
+            Date.parse(`${startDate}T00:00:00Z`)) /
+            (1000 * 60 * 60 * 24),
+        ) + 1
       : 0;
 
-  const rentalPrice = days * pricePerDay;
+  const rentalPrice =
+    days * pricePerDay * selectedQuantity;
 
   const serviceFee = Math.round(
     (rentalPrice * SERVICE_FEE_PERCENT) / 100,
@@ -113,19 +110,37 @@ function BookingBox({
 
   const total = rentalPrice + serviceFee;
 
-  const allDays = Array.from(
-    { length: daysInMonth },
-    (_, i) => i + 1,
-  );
-
   async function handleBooking() {
+    setBookingMessage("");
+
     if (!customerId) {
       setBookingMessage("Please login to book equipment.");
       return;
     }
 
-    if (!startDay || !endDay) {
-      setBookingMessage("Please select rental dates.");
+    if (!startDate || !endDate || days <= 0) {
+      setBookingMessage("Please select valid rental dates.");
+      return;
+    }
+
+    if (startDate < minDate) {
+      setBookingMessage("Past dates cannot be selected.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(selectedQuantity) ||
+      selectedQuantity < 1 ||
+      selectedQuantity > availableQuantity
+    ) {
+      setBookingMessage(
+        `Quantity must be between 1 and ${availableQuantity}.`,
+      );
+      return;
+    }
+
+    if (!phone.trim() || !address.trim()) {
+      setBookingMessage("Phone and address are required.");
       return;
     }
 
@@ -136,12 +151,15 @@ function BookingBox({
 
     try {
       setBookingLoading(true);
-      setBookingMessage("");
 
       const checkoutUrl = await createCheckoutSession({
         equipmentId,
-        startDate: `2026-11-${String(startDay).padStart(2, "0")}`,
-        endDate: `2026-11-${String(endDay).padStart(2, "0")}`,
+        startDate,
+        endDate,
+        quantity: selectedQuantity,
+        phone: phone.trim(),
+        address: address.trim(),
+        notes: notes.trim(),
       });
 
       window.location.href = checkoutUrl;
@@ -155,82 +173,166 @@ function BookingBox({
       setBookingLoading(false);
     }
   }
+
   return (
     <aside className="h-fit rounded-2xl border border-[#2f3639] bg-[#1b2124] p-5 text-white">
+      {/* Price */}
       <p>
         <span className="text-2xl font-extrabold">
           ${pricePerDay}
         </span>
+
         <span className="ml-1 text-sm text-[#9a9c96]">
           /day
         </span>
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-5 space-y-4">
+        {/* Start Date */}
         <div>
-          <p className="text-xs font-semibold text-[#9a9c96]">
-            Start
-          </p>
+          <label
+            htmlFor="startDate"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            Start Date
+          </label>
 
-          <div className="mt-1 rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm">
-            {startDay ? `Nov ${startDay}, 2026` : "Pick a day"}
-          </div>
+          <input
+            id="startDate"
+            type="date"
+            min={minDate}
+            value={startDate}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              setStartDate(value);
+
+              if (endDate && value > endDate) {
+                setEndDate("");
+              }
+
+              setBookingMessage("");
+            }}
+            className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white"
+          />
         </div>
 
+        {/* End Date */}
         <div>
-          <p className="text-xs font-semibold text-[#9a9c96]">
-            End
-          </p>
+          <label
+            htmlFor="endDate"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            End Date
+          </label>
 
-          <div className="mt-1 rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm">
-            {endDay ? `Nov ${endDay}, 2026` : "Pick a day"}
-          </div>
+          <input
+            id="endDate"
+            type="date"
+            min={startDate || minDate}
+            value={endDate}
+            onChange={(event) => {
+              setEndDate(event.target.value);
+              setBookingMessage("");
+            }}
+            className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white"
+          />
+        </div>
+
+        {/* Quantity */}
+        <div>
+          <label
+            htmlFor="quantity"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            Quantity (Available: {availableQuantity})
+          </label>
+
+          <input
+            id="quantity"
+            type="number"
+            min="1"
+            max={availableQuantity}
+            step="1"
+            value={quantity}
+            onChange={(event) => {
+              setQuantity(event.target.value);
+              setBookingMessage("");
+            }}
+            className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white"
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label
+            htmlFor="phone"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            Phone Number
+          </label>
+
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="Enter your phone number"
+            className="mt-1 w-full rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white placeholder:text-[#777]"
+          />
+        </div>
+
+        {/* Address */}
+        <div>
+          <label
+            htmlFor="address"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            Delivery Address
+          </label>
+
+          <textarea
+            id="address"
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+            placeholder="Enter your full address"
+            rows={2}
+            className="mt-1 w-full resize-none rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white placeholder:text-[#777]"
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label
+            htmlFor="notes"
+            className="text-xs font-semibold text-[#9a9c96]"
+          >
+            Additional Notes (Optional)
+          </label>
+
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="Any special instructions?"
+            rows={2}
+            className="mt-1 w-full resize-none rounded-lg border border-[#2f3639] bg-[#111719] px-3 py-2.5 text-sm text-white placeholder:text-[#777]"
+          />
         </div>
       </div>
 
-      <h3 className="mt-5 text-sm font-semibold">
-        November 2026
-      </h3>
-
-      <div className="mt-2 grid grid-cols-7 gap-1.5">
-        {allDays.map((day) => {
-          const isBooked = bookedDays.includes(day);
-
-          let style =
-            "bg-[#111719] text-white hover:bg-[#2f3639]";
-
-          if (isBooked) {
-            style =
-              "bg-red-950/60 text-red-400 line-through cursor-not-allowed";
-          } else if (isSelected(day)) {
-            style =
-              "bg-[#F28C28] text-[#111719] font-semibold";
-          }
-
-          return (
-            <button
-              key={day}
-              type="button"
-              disabled={isBooked || !available || bookingLoading}
-              onClick={() => handleDayClick(day)}
-              className={`h-10 rounded-lg text-xs ${style}`}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 space-y-1 text-sm text-[#9a9c96]">
-        <div className="flex justify-between">
+      {/* Price Calculation */}
+      <div className="mt-5 space-y-2 text-sm text-[#9a9c96]">
+        <div className="flex justify-between gap-2">
           <span>
-            {days} days × ${pricePerDay}
+            {days} days × {selectedQuantity} × ${pricePerDay}
           </span>
+
           <span>${rentalPrice}</span>
         </div>
 
         <div className="flex justify-between">
-          <span>Service fee</span>
+          <span>Service fee (5%)</span>
           <span>${serviceFee}</span>
         </div>
       </div>
@@ -240,10 +342,18 @@ function BookingBox({
         <span>${total}</span>
       </div>
 
+      {/* Booking Button */}
       <button
         type="button"
         onClick={handleBooking}
-        disabled={days === 0 || !available || bookingLoading}
+        disabled={
+          !available ||
+          bookingLoading ||
+          days <= 0 ||
+          !Number.isInteger(selectedQuantity) ||
+          selectedQuantity < 1 ||
+          selectedQuantity > availableQuantity
+        }
         className="mt-4 w-full rounded-lg bg-[#F28C28] py-2.5 text-sm font-semibold text-[#111719] hover:bg-[#e07d1a] disabled:opacity-50"
       >
         {bookingLoading
@@ -262,6 +372,7 @@ function BookingBox({
   );
 }
 
+// Equipment Details Page
 export default function EquipmentDetails() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -305,6 +416,7 @@ export default function EquipmentDetails() {
       setIsFavorite(false);
       return;
     }
+
     async function checkFavorite() {
       try {
         const favorites = await getFavorites();
@@ -331,6 +443,7 @@ export default function EquipmentDetails() {
         description: "Please login to add favorites.",
         type: "warning",
       });
+
       return;
     }
 
@@ -362,6 +475,7 @@ export default function EquipmentDetails() {
     }
   }
 
+  // Loading state
   if (loading) {
     return (
       <main className="min-h-screen bg-[#111719] text-white">
@@ -373,6 +487,7 @@ export default function EquipmentDetails() {
     );
   }
 
+  // Error state
   if (error || !equipment) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#111719] text-white">
@@ -381,7 +496,7 @@ export default function EquipmentDetails() {
         </p>
 
         <Link
-          href="/browse-equipment"
+          href="/equipment"
           className="rounded-lg bg-[#F28C28] px-5 py-2 text-sm font-semibold text-[#111719]"
         >
           Back to browse
@@ -396,9 +511,10 @@ export default function EquipmentDetails() {
   return (
     <main className="min-h-screen bg-[#111719] text-white">
       <div className="mx-auto max-w-[1180px] px-5 py-8">
+        {/* Breadcrumb */}
         <nav className="text-sm text-[#9a9c96]">
           <Link
-            href="/browse-equipment"
+            href="/equipment"
             className="hover:text-white"
           >
             Browse
@@ -407,13 +523,14 @@ export default function EquipmentDetails() {
           {" / "}
 
           <Link
-            href={`/browse-equipment?category=${encodeURIComponent(equipment.category)}`}
+            href={`/equipment?category=${encodeURIComponent(equipment.category)}`}
             className="hover:text-white"
           >
             {equipment.category}
           </Link>
 
           {" / "}
+
           {equipment.name}
         </nav>
 
@@ -454,8 +571,9 @@ export default function EquipmentDetails() {
                   className="inline-flex items-center gap-2 rounded-lg border border-[#F28C28] px-4 py-2.5 text-sm font-semibold text-[#F28C28] transition-colors hover:bg-[#F28C28] hover:text-[#111719] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Heart
-                    className={`size-4 ${isFavorite ? "fill-current" : ""
-                      }`}
+                    className={`size-4 ${
+                      isFavorite ? "fill-current" : ""
+                    }`}
                   />
 
                   {favoriteLoading
@@ -467,6 +585,7 @@ export default function EquipmentDetails() {
               )}
             </div>
 
+            {/* Equipment Information */}
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#9a9c96]">
               <span className="flex items-center gap-1">
                 <MapPin className="size-4" />
@@ -474,7 +593,9 @@ export default function EquipmentDetails() {
               </span>
 
               <span>·</span>
+
               <span>{equipment.category}</span>
+
               <span>·</span>
 
               {available ? (
@@ -492,6 +613,7 @@ export default function EquipmentDetails() {
               {equipment.description}
             </p>
 
+            {/* Equipment Details Table */}
             <h2 className="mt-8 text-lg font-bold">
               Equipment Information
             </h2>
@@ -503,6 +625,7 @@ export default function EquipmentDetails() {
                     <td className="px-4 py-3.5 text-[#9a9c96]">
                       Category
                     </td>
+
                     <td className="px-4 py-3.5">
                       {equipment.category}
                     </td>
@@ -512,6 +635,7 @@ export default function EquipmentDetails() {
                     <td className="px-4 py-3.5 text-[#9a9c96]">
                       Location
                     </td>
+
                     <td className="px-4 py-3.5">
                       {equipment.location}
                     </td>
@@ -521,6 +645,7 @@ export default function EquipmentDetails() {
                     <td className="px-4 py-3.5 text-[#9a9c96]">
                       Price per day
                     </td>
+
                     <td className="px-4 py-3.5">
                       ${equipment.pricePerDay}
                     </td>
@@ -528,8 +653,19 @@ export default function EquipmentDetails() {
 
                   <tr className="border-t border-[#2f3639]">
                     <td className="px-4 py-3.5 text-[#9a9c96]">
+                      Total Quantity
+                    </td>
+
+                    <td className="px-4 py-3.5">
+                      {equipment.quantity}
+                    </td>
+                  </tr>
+
+                  <tr className="border-t border-[#2f3639]">
+                    <td className="px-4 py-3.5 text-[#9a9c96]">
                       Availability
                     </td>
+
                     <td className="px-4 py-3.5">
                       {available ? "Available" : "Rented"}
                     </td>
@@ -539,8 +675,10 @@ export default function EquipmentDetails() {
             </div>
           </div>
 
+          {/* Booking Form */}
           <BookingBox
             pricePerDay={equipment.pricePerDay}
+            quantity={equipment.quantity}
             available={available}
             equipmentId={equipment._id}
             ownerId={equipment.ownerId}

@@ -7,6 +7,7 @@ export type Equipment = {
   category: string;
   description: string;
   pricePerDay: number;
+  quantity: number;
   location: string;
   images: string[];
   status: "available" | "rented";

@@ -95,40 +95,54 @@ export default function CustomerBookingsPage() {
     const [selectedBooking, setSelectedBooking] = useState("");
 
     // Load customer bookings
-    useEffect(() => {
-        async function loadBookings() {
+  
+useEffect(() => {
+    async function loadBookings() {
+        try {
+            setLoading(true);
+            setError("");
+
+            // First, fetch customer bookings
+            const bookingData = await getCustomerBookings();
+
+            // Then fetch equipment separately
+            let equipmentData = [];
+
             try {
-                setLoading(true);
-                setError("");
-
-                const bookingData = await getCustomerBookings();
-                const equipmentData = await getEquipment();
-
-                const bookingItems = bookingData.map((booking) => {
-                    const equipment = equipmentData.find(
-                        (item) => item._id === booking.equipmentId
-                    );
-
-                    return {
-                        ...booking,
-                        equipmentName: equipment?.name || "Equipment not found",
-                    };
-                });
-
-                setBookings(bookingItems);
+                equipmentData = await getEquipment();
             } catch (error) {
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to load bookings"
-                );
-            } finally {
-                setLoading(false);
+                console.error("Equipment fetch failed:", error);
             }
-        }
 
-        loadBookings();
-    }, []);
+            // Map equipment names to bookings
+            const bookingItems = bookingData.map((booking) => {
+                const equipment = equipmentData.find(
+                    (item) => item._id === booking.equipmentId
+                );
+
+                return {
+                    ...booking,
+                    equipmentName: equipment?.name || "Equipment not found",
+                };
+            });
+
+            console.log("Customer bookings:", bookingItems);
+
+            setBookings(bookingItems);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to load bookings"
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    loadBookings();
+}, []);
+
 
     // Cancel booking
     async function handleCancel(bookingId: string) {

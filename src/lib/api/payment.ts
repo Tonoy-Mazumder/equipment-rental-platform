@@ -7,6 +7,10 @@ export async function createCheckoutSession(data: {
   equipmentId: string;
   startDate: string;
   endDate: string;
+  quantity: number;
+  phone: string;
+  address: string;
+  notes: string;
 }) {
   const { data: tokenData, error } = await authClient.token();
 
@@ -29,7 +33,9 @@ export async function createCheckoutSession(data: {
   const result = await response.json();
 
   if (!response.ok) {
-    throw new Error(result.message || "Failed to create checkout session");
+    throw new Error(
+      result.message || "Failed to create checkout session",
+    );
   }
 
   return result.checkoutUrl as string;
