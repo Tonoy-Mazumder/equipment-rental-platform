@@ -192,7 +192,7 @@ export default function Page() {
 
             {/* Error */}
             {error && (
-                <p className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
+                <p className="rounded-lg bg-red-500/10 p-4 text-sm text-red-400">
                     {error}
                 </p>
             )}
@@ -270,7 +270,7 @@ export default function Page() {
 
                                 <button
                                     onClick={() => setConfirmDelete(item._id)}
-                                    className="inline-flex items-center gap-2 rounded-lg border border-red-500 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"
                                 >
                                     <Trash2 size={15} />
                                     Delete
@@ -423,7 +423,7 @@ export default function Page() {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-md space-y-5 rounded-xl border bg-background p-6 shadow-xl">
                         <div>
-                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15 text-red-400">
                                 <Trash2 size={24} />
                             </div>
 

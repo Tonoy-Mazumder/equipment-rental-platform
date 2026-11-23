@@ -83,13 +83,13 @@ export default function CustomerBookingPage() {
 
     const statusColor =
         booking.status === "approved"
-            ? "bg-green-100 text-green-700"
+            ? "bg-green-500/15 text-green-400"
             : booking.status === "cancelled" ||
                 booking.status === "rejected"
-                ? "bg-red-100 text-red-700"
+                ? "bg-red-500/15 text-red-400"
                 : booking.status === "completed"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-yellow-100 text-yellow-700";
+                    ? "bg-blue-500/15 text-blue-400"
+                    : "bg-yellow-500/15 text-yellow-400";
 
     const rentalDays = Math.max(
         1,
@@ -194,7 +194,7 @@ export default function CustomerBookingPage() {
 
                     <div className="mt-6 space-y-6">
                         <div className="flex gap-3">
-                            <CheckCircle2 className="shrink-0 text-green-600" />
+                            <CheckCircle2 className="shrink-0 text-green-400" />
 
                             <div>
                                 <p className="text-sm font-medium">

@@ -292,7 +292,7 @@ export default function AdminProfilePage() {
             </div>
           </div>
 
-          <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-medium text-green-600">
+          <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-medium text-green-400">
             Active
           </span>
         </div>

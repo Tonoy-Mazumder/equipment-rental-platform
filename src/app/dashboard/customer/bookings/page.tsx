@@ -340,7 +340,7 @@ export default function CustomerBookingsPage() {
                                                                     booking._id
                                                                 )
                                                             }
-                                                            className="rounded-lg border border-red-200 bg-transparent px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            className="rounded-lg border border-red-500/40 bg-transparent px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                                                         >
                                                             {cancellingId === booking._id
                                                                 ? "Cancelling..."

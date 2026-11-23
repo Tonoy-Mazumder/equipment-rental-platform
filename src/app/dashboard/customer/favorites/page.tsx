@@ -187,7 +187,7 @@ export default function CustomerFavoritesPage() {
                       <span
                         className={`text-xs font-medium ${
                           equipment.status === "available"
-                            ? "text-emerald-600"
+                            ? "text-emerald-400"
                             : "text-muted-foreground"
                         }`}
                       >

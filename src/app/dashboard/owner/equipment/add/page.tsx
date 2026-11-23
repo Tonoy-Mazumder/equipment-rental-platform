@@ -207,7 +207,7 @@ const AddNewEquipmentPage = () => {
         </div>
 
         {error && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <p className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
             {error}
           </p>
         )}
