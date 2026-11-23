@@ -29,8 +29,8 @@ export default function DashboardLayout({
     <SidebarProvider>
       <DashboardSidebar role={role} />
 
-      <SidebarInset className="bg-white">
-        <header className="flex h-16 items-center gap-4 border-b px-6">
+      <SidebarInset className="dark bg-background text-foreground">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/10 px-4 sm:px-6">
           <SidebarTrigger />
           <span className="font-semibold capitalize">
             {role} Dashboard

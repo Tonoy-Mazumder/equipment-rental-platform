@@ -16,6 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { dashboardMenus, DashboardRole } from "../dashboard/dashboard-menu";
 
@@ -27,12 +28,19 @@ type DashboardSidebarProps = {
 export function DashboardSidebar({ role }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { setOpenMobile } = useSidebar();
 
   const basePath = `/dashboard/${role}`;
   const menuItems = dashboardMenus[role];
 
+  // Navigate and close the mobile sheet (no-op on desktop).
+  const navigate = (url: string) => {
+    router.push(url);
+    setOpenMobile(false);
+  };
+
   return (
-    <Sidebar>
+    <Sidebar className="dark">
       <SidebarHeader className="px-5 py-6">
         <div>
           <h2 className="text-2xl font-extrabold text-foreground">
@@ -62,8 +70,8 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
                     <SidebarMenuButton
                       isActive={isActive}
                       tooltip={item.title}
-                      onClick={() => router.push(url)}
-                      className="h-11 text-foreground/70 hover:bg-muted hover:text-foreground data-[active=true]:bg-[#F28C28] data-[active=true]:text-white"
+                      onClick={() => navigate(url)}
+                      className="h-11 text-foreground/70 hover:bg-muted hover:text-foreground data-active:bg-[#F28C28] data-active:text-white"
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -77,7 +85,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
           {role === "owner" && (
             <SidebarGroupAction
               title="Add Equipment"
-              onClick={() => router.push(`${basePath}/equipment/new`)}
+              onClick={() => navigate(`${basePath}/equipment/new`)}
               className="text-foreground hover:bg-muted"
             >
               <Plus />
@@ -91,7 +99,7 @@ export function DashboardSidebar({ role }: DashboardSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => router.push("/")}
+              onClick={() => navigate("/")}
               className="text-foreground/70 hover:bg-muted hover:text-foreground"
             >
               <LogOut />
