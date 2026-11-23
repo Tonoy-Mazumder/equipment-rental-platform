@@ -300,11 +300,10 @@ export default function EquipmentDetails() {
 
   // Check whether equipment is already in favorites
   useEffect(() => {
-    if (!customerId || !id) {
+    if (!isCustomer || !customerId || !id) {
       setIsFavorite(false);
       return;
     }
-
     async function checkFavorite() {
       try {
         const favorites = await getFavorites();
@@ -321,7 +320,7 @@ export default function EquipmentDetails() {
     }
 
     checkFavorite();
-  }, [customerId, id]);
+  }, [isCustomer, customerId, id]);
 
   // Add equipment to favorites
   async function handleAddFavorite() {
